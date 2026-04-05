@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECE Admin Panel – Efikcoin Eternal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, monospace; }
+        body { background: #0a0c1a; padding: 20px; }
+        .admin-container { max-width: 1400px; margin: 0 auto; }
+        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #03050b; display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
+        .login-card { background: #111827; padding: 30px; border-radius: 32px; border: 1px solid #FFD966; width: 320px; text-align: center; }
+        .login-card input { width: 100%; margin: 15px 0; padding: 12px; border-radius: 40px; border: none; background: #1f2937; color: white; }
+        .dashboard { display: none; }
+        .card { background: rgba(17, 24, 39, 0.9); border-radius: 28px; padding: 20px; margin-bottom: 24px; border: 1px solid #374151; }
+        h1, h2 { color: #FFD966; margin-bottom: 16px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #1f2937; border-radius: 20px; padding: 16px; text-align: center; }
+        .stat-number { font-size: 2.2rem; font-weight: bold; color: #FFA500; }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #374151; color: #e5e7eb; }
+        th { color: #FFD966; }
+        button { background: linear-gradient(90deg,#FFA500,#FFD966); border: none; padding: 8px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; margin: 4px; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-secondary { background: #374151; color: white; }
+        input, textarea { background: #1f2937; border: 1px solid #4b5563; border-radius: 24px; padding: 8px 14px; color: white; width: 100%; margin: 6px 0; }
+        .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .small-text { font-size: 0.75rem; color: #9ca3af; }
+        .holder-list { max-height: 300px; overflow-y: auto; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+</head>
+<body>
+
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+        <h2>🔐 ECE ADMIN</h2>
+        <p style="color:#aaa;">Enter master password</p>
+        <input type="password" id="adminPassword" placeholder="Password">
+        <button id="loginBtn">Enter</button>
+        <div id="loginError" class="small-text" style="color:#f87171; margin-top:12px;"></div>
+    </div>
+</div>
+
+<div id="dashboard" class="dashboard admin-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+        <h1>⚡ EFIKCOIN ETERNAL – ADMIN BRAIN</h1>
+        <button id="logoutBtn" class="btn-secondary">🔒 Logout</button>
+    </div>
+    <p style="color:#9ca3af; margin-bottom: 24px;">Live blockchain data + registered users database (local to your device)</p>
+
+    <!-- STATS SECTION -->
+    <div class="stats-grid">
+        <div class="stat-card"><div class="stat-number" id="totalSupply">—</div><div>Total Supply (ECE)</div></div>
+        <div class="stat-card"><div class="stat-number" id="holderCount">—</div><div>Unique Holders</div></div>
+        <div class="stat-card"><div class="stat-number" id="registeredCount">0</div><div>Registered Users</div></div>
+        <div class="stat-card"><div class="stat-number" id="lastUpdate">—</div><div>Last Sync</div></div>
+    </div>
+
+    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- LEFT: HOLDERS LIST (on-chain) -->
+        <div class="card">
+            <h2>📊 TOP HOLDERS (on‑chain)</h2>
+            <div class="flex">
+                <input type="text" id="eceContractAddr" placeholder="ECE Token Contract Address" value="0x...">
+                <button id="fetchHoldersBtn">🔄 Fetch Holders</button>
+            </div>
+            <div id="holdersList" class="holder-list"><p class="small-text">Click "Fetch Holders" – this scans last 10k transfers (may take 10-20 sec).</p></div>
+        </div>
+
+        <!-- RIGHT: REGISTERED USERS (admin managed) -->
+        <div class="card">
+            <h2>👥 REGISTERED USERS – BRAIN DATA BOX</h2>
+            <div class="flex">
+                <input type="text" id="newUserAddr" placeholder="Wallet address">
+                <input type="text" id="newUserName" placeholder="Name / Note">
+                <button id="addUserBtn">➕ Add User</button>
+            </div>
+            <button id="exportUsersBtn">📥 Export JSON</button>
+            <button id="importUsersBtn">📤 Import JSON</button>
+            <div id="registeredUsersList" style="max-height: 300px; overflow-y: auto; margin-top: 16px;">
+                <table style="width:100%">
+                    <thead><tr><th>Address</th><th>Name/Note</th><th>ECE Balance</th><th>Actions</th></tr></thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGS / ACTIVITY -->
+    <div class="card">
+        <h2>📜 Admin Logs</h2>
+        <div id="adminLogs" style="background:#00000044; padding: 12px; border-radius: 20px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;"></div>
+    </div>
+    <div class="small-text" style="text-align: center; margin-top: 20px;">Efikcoin Eternal – Immortal Admin | Data stored locally in your browser (IndexedDB)</div>
+</div>
+
+<script>
+    // ======================= CONFIG =======================
+    const ADMIN_PASSWORD = "EfikcoinAdmin2025";  // CHANGE THIS TO YOUR SECRET PASSWORD
+    const ALCHEMY_URL = "https://bnb-mainnet.g.alchemy.com/v2/7eVHdM-QW5izRxwhzKmto";
+    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
+    
+    // Global variables
+    let eceContract = null;
+    let currentEceAddress = "";
+    let allHolders = [];   // {address, balance}
+    let registeredUsers = []; // {address, name, addedAt}
+    
+    // DOM elements
+    const loginOverlay = document.getElementById('loginOverlay');
+    const dashboard = document.getElementById('dashboard');
+    const loginBtn = document.getElementById('loginBtn');
+    const adminPasswordInput = document.getElementById('adminPassword');
+    const loginError = document.getElementById('loginError');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const totalSupplySpan = document.getElementById('totalSupply');
+    const holderCountSpan = document.getElementById('holderCount');
+    const registeredCountSpan = document.getElementById('registeredCount');
+    const lastUpdateSpan = document.getElementById('lastUpdate');
+    const fetchHoldersBtn = document.getElementById('fetchHoldersBtn');
+    const eceContractAddrInput = document.getElementById('eceContractAddr');
+    const holdersListDiv = document.getElementById('holdersList');
+    const addUserBtn = document.getElementById('addUserBtn');
+    const newUserAddr = document.getElementById('newUserAddr');
+    const newUserName = document.getElementById('newUserName');
+    const exportUsersBtn = document.getElementById('exportUsersBtn');
+    const importUsersBtn = document.getElementById('importUsersBtn');
+    const usersTableBody = document.getElementById('usersTableBody');
+    const adminLogsDiv = document.getElementById('adminLogs');
+    
+    function addLog(msg) {
+        const logEntry = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        adminLogsDiv.innerHTML += `<div>${logEntry}</div>`;
+        adminLogsDiv.scrollTop = adminLogsDiv.scrollHeight;
+        console.log(logEntry);
+    }
+    
+    // ----- Registered Users DB (IndexedDB for persistence) -----
+    function openUsersDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open("ECEAdminDB", 1);
+            request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains("users")) {
+                    db.createObjectStore("users", { keyPath: "address" });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async function loadRegisteredUsers() {
+        const db = await openUsersDB();
+        const tx = db.transaction("users", "readonly");
+        const store = tx.objectStore("users");
+        const users = await new Promise((resolve) => {
+            const request = store.getAll();
+            request.onsuccess = () => resolve(request.result || []);
+        });
+        registeredUsers = users;
+        renderUsersTable();
+        updateRegisteredCount();
+        addLog(`Loaded ${registeredUsers.length} registered users from database.`);
+    }
+    
+    async function saveUser(user) {
+        const db = await openUsersDB();
+        const tx = db.transaction("users", "readwrite");
+        const store = tx.objectStore("users");
+        store.put(user);
+        await new Promise(resolve => { tx.oncomplete = resolve; });
+        await loadRegisteredUsers();
+    }
+    
+    async function deleteUser(address) {
+        const db = await openUsersDB();
+        const tx = db.transaction("users", "readwrite");
+        const store = tx.objectStore("users");
+        store.delete(address);
+        await new Promise(resolve => { tx.oncomplete = resolve; });
+        await loadRegisteredUsers();
+        addLog(`Deleted user ${address.slice(0,10)}...`);
+    }
+    
+    function updateRegisteredCount() {
+        registeredCountSpan.innerText = registeredUsers.length;
+    }
+    
+    async function renderUsersTable() {
+        usersTableBody.innerHTML = "";
+        for (const user of registeredUsers) {
+            let balanceEce = "—";
+            if (eceContract && user.address) {
+                try {
+                    const bal = await eceContract.balanceOf(user.address);
+                    const dec = await eceContract.decimals();
+                    balanceEce = parseFloat(ethers.utils.formatUnits(bal, dec)).toFixed(4);
+                } catch(e) { balanceEce = "error"; }
+            }
+            const row = usersTableBody.insertRow();
+            row.insertCell(0).innerText = user.address.slice(0,8)+"..."+user.address.slice(-6);
+            row.insertCell(1).innerText = user.name || "—";
+            row.insertCell(2).innerText = balanceEce;
+            const actionCell = row.insertCell(3);
+            const delBtn = document.createElement("button");
+            delBtn.innerText = "Delete";
+            delBtn.className = "btn-danger";
+            delBtn.style.padding = "4px 12px";
+            delBtn.onclick = () => deleteUser(user.address);
+            actionCell.appendChild(delBtn);
+        }
+    }
+    
+    // ----- On-chain data: fetch total supply and holder count via logs (simplified) -----
+    async function fetchTotalSupply() {
+        if (!eceContract) return;
+        try {
+            const supply = await eceContract.totalSupply();
+            const dec = await eceContract.decimals();
+            totalSupplySpan.innerText = parseFloat(ethers.utils.formatUnits(supply, dec)).toFixed(0);
+            addLog("Total supply updated.");
+        } catch(e) { totalSupplySpan.innerText = "error"; }
+    }
+    
+    async function fetchHolderCountAndList() {
+        const contractAddr = eceContractAddrInput.value.trim();
+        if (!contractAddr || !ethers.utils.isAddress(contractAddr)) {
+            addLog("Invalid token address", true);
+            return;
+        }
+        currentEceAddress = contractAddr;
+        eceContract = new ethers.Contract(contractAddr, [
+            "function totalSupply() view returns (uint256)",
+            "function balanceOf(address) view returns (uint256)",
+            "function decimals() view returns (uint8)",
+            "function symbol() view returns (string)"
+        ], provider);
+        
+        holdersListDiv.innerHTML = "<div class='small-text'>Scanning blockchain for holders (may take 10-30 seconds)...</div>";
+        addLog(`Fetching holders for ${contractAddr}`);
+        
+        // Get all Transfer events from block 0 to latest (limit to last 100k blocks for performance)
+        const currentBlock = await provider.getBlockNumber();
+        const fromBlock = currentBlock - 500000; // last ~3 months, adjust as needed
+        const filter = {
+            address: contractAddr,
+            topics: [ethers.utils.id("Transfer(address,address,uint256)")],
+            fromBlock: fromBlock > 0 ? fromBlock : 0,
+            toBlock: "latest"
+        };
+        try {
+            const logs = await provider.getLogs(filter);
+            addLog(`Retrieved ${logs.length} Transfer events. Processing...`);
+            const holdersMap = new Map(); // address -> balance
+            for (const log of logs) {
+                const parsed = ethers.utils.defaultAbiCoder.decode(["address","address","uint256"], log.data);
+                const from = "0x" + log.topics[1].slice(26);
+                const to = "0x" + log.topics[2].slice(26);
+                const value = parsed[2];
+                // Update balances roughly (simplified – not perfect but gives holder set)
+                if (!holdersMap.has(from)) holdersMap.set(from, ethers.BigNumber.from(0));
+                if (!holdersMap.has(to)) holdersMap.set(to, ethers.BigNumber.from(0));
+                holdersMap.set(from, holdersMap.get(from).sub(value));
+                holdersMap.set(to, holdersMap.get(to).add(value));
+            }
+            // Filter out zero balances and negative (dust)
+            const holdersList = [];
+            for (let [addr, bal] of holdersMap.entries()) {
+                if (bal.gt(0) && addr !== "0x0000000000000000000000000000000000000000") {
+                    const balanceFormatted = ethers.utils.formatEther(bal);
+                    holdersList.push({ address: addr, balance: balanceFormatted });
+                }
+            }
+            holdersList.sort((a,b) => parseFloat(b.balance) - parseFloat(a.balance));
+            allHolders = holdersList.slice(0, 100); // top 100
+            holderCountSpan.innerText = allHolders.length;
+            lastUpdateSpan.innerText = new Date().toLocaleTimeString();
+            // Render holders list
+            let html = `<table style="width:100%"><tr><th>Rank</th><th>Address</th><th>Balance (ECE)</th></tr>`;
+            allHolders.forEach((h, idx) => {
+                html += `<tr><td>${idx+1}</td><td>${h.address.slice(0,8)}...${h.address.slice(-6)}</td><td>${parseFloat(h.balance).toFixed(4)}</td></tr>`;
+            });
+            html += `</table><div class="small-text">Top ${allHolders.length} holders (approximate, based on recent transfers).</div>`;
+            holdersListDiv.innerHTML = html;
+            addLog(`Holder scan complete. Found ${allHolders.length} unique holders with positive balance.`);
+            // Re-render user table to show updated balances
+            renderUsersTable();
+        } catch(err) {
+            holdersListDiv.innerHTML = `<div class="small-text" style="color:#f87171;">Error scanning logs: ${err.message}. Try again or use a smaller block range.</div>`;
+            addLog(`Holder scan error: ${err.message}`);
+        }
+    }
+    
+    // ----- Admin Authentication -----
+    function login() {
+        const pwd = adminPasswordInput.value;
+        if (pwd === ADMIN_PASSWORD) {
+            loginOverlay.style.display = "none";
+            dashboard.style.display = "block";
+            addLog("Admin logged in.");
+            loadRegisteredUsers();
+            // Optionally load token contract if previously set
+            const savedAddr = localStorage.getItem("eceAdminContract");
+            if (savedAddr) {
+                eceContractAddrInput.value = savedAddr;
+                fetchTotalSupply();
+            }
+        } else {
+            loginError.innerText = "Wrong password! Access denied.";
+        }
+    }
+    
+    function logout() {
+        loginOverlay.style.display = "flex";
+        dashboard.style.display = "none";
+        adminPasswordInput.value = "";
+        loginError.innerText = "";
+        addLog("Admin logged out.");
+    }
+    
+    // ----- User Management -----
+    addUserBtn.onclick = async () => {
+        const addr = newUserAddr.value.trim();
+        const name = newUserName.value.trim();
+        if (!addr || !ethers.utils.isAddress(addr)) {
+            addLog("Invalid wallet address.", true);
+            return;
+        }
+        const existing = registeredUsers.find(u => u.address.toLowerCase() === addr.toLowerCase());
+        if (existing) {
+            addLog("User already registered.");
+            return;
+        }
+        const newUser = { address: addr, name: name || "—", addedAt: Date.now() };
+        await saveUser(newUser);
+        newUserAddr.value = "";
+        newUserName.value = "";
+        addLog(`Registered user ${addr.slice(0,10)}...`);
+    };
+    
+    exportUsersBtn.onclick = () => {
+        const dataStr = JSON.stringify(registeredUsers, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ece_registered_users_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        addLog("Exported registered users JSON.");
+    };
+    
+    importUsersBtn.onclick = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json';
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            const text = await file.text();
+            try {
+                const imported = JSON.parse(text);
+                if (Array.isArray(imported)) {
+                    const db = await openUsersDB();
+                    const tx = db.transaction("users", "readwrite");
+                    const store = tx.objectStore("users");
+                    for (const user of imported) {
+                        if (user.address && ethers.utils.isAddress(user.address)) {
+                            store.put({ address: user.address, name: user.name || "—", addedAt: user.addedAt || Date.now() });
+                        }
+                    }
+                    await new Promise(resolve => { tx.oncomplete = resolve; });
+                    await loadRegisteredUsers();
+                    addLog(`Imported ${imported.length} users.`);
+                } else throw new Error("Invalid format");
+            } catch(err) {
+                addLog("Import failed: invalid JSON", true);
+            }
+        };
+        input.click();
+    };
+    
+    // ----- Blockchain actions -----
+    fetchHoldersBtn.onclick = async () => {
+        const addr = eceContractAddrInput.value.trim();
+        if (!addr || !ethers.utils.isAddress(addr)) {
+            addLog("Enter a valid ECE token contract address.", true);
+            return;
+        }
+        localStorage.setItem("eceAdminContract", addr);
+        eceContract = new ethers.Contract(addr, ["function totalSupply() view returns (uint256)","function decimals() view returns (uint8)"], provider);
+        await fetchTotalSupply();
+        await fetchHolderCountAndList();
+    };
+    
+    // ----- Auto refresh balances for users every 30s -----
+    setInterval(async () => {
+        if (eceContract && dashboard.style.display === "block") {
+            await renderUsersTable();
+            addLog("Auto-refreshed user balances.");
+        }
+    }, 30000);
+    
+    // ----- Event Listeners -----
+    loginBtn.onclick = login;
+    logoutBtn.onclick = logout;
+    adminPasswordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") login(); });
+    
+    // Initial load: check if already logged in? No, always show login.
+</script>
+</body>
+</html>
