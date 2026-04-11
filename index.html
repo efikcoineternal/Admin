@@ -6,41 +6,39 @@
     <title>EfikCoin Eternal – Admin Core Engine</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
     <style>
         body { background: radial-gradient(circle at 10% 30%, #0a0f1e, #03060f); font-family: 'Inter', sans-serif; }
         .glass-card { background: rgba(15, 25, 45, 0.7); backdrop-filter: blur(14px); border: 1px solid rgba(0, 255, 255, 0.25); border-radius: 2rem; }
-        .btn-primary { background: linear-gradient(135deg, #00c6fb, #005bea); transition: all 0.2s; }
-        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 10px 20px -5px #005bea80; }
+        .btn-primary { background: linear-gradient(135deg, #00c6fb, #005bea); }
+        .btn-primary:hover { transform: scale(1.02); }
         .admin-table { width: 100%; border-collapse: collapse; }
         .admin-table th, .admin-table td { border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem; text-align: left; }
         .admin-table th { background: rgba(0,0,0,0.5); }
+        .badge-blocked { background: #dc2626; color: white; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
+        .badge-active { background: #10b981; color: white; padding: 2px 8px; border-radius: 20px; font-size: 10px; }
     </style>
 </head>
 <body class="text-white">
 
-    <div id="loading" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
-        <div class="bg-gray-900 p-6 rounded-2xl"><i class="fas fa-spinner fa-spin text-3xl"></i> Loading...</div>
-    </div>
-
-    <!-- LOGIN SCREEN -->
+    <!-- Login Screen -->
     <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
         <div class="glass-card max-w-md w-full p-8 text-center">
             <i class="fas fa-shield-alt text-5xl text-cyan-400 mb-4"></i>
             <h1 class="text-2xl font-bold">Admin Core Engine</h1>
-            <p class="text-gray-400 text-sm mb-6">Secure access to EfikCoin Eternal management</p>
-            <div id="setup-message" class="hidden bg-yellow-600/30 p-2 rounded mb-3 text-sm"></div>
+            <p class="text-gray-400 text-sm mb-6">Secure management of EfikCoin Eternal ecosystem</p>
             <input type="password" id="admin-password" placeholder="Enter password" class="w-full p-3 bg-black/50 rounded-xl border border-cyan-500/50 mb-4">
             <button id="login-btn" class="btn-primary w-full py-3 rounded-xl font-semibold">Unlock Dashboard</button>
-            <p class="text-xs text-gray-400 mt-4">First time? Set your password below (once set, it's hashed and stored).</p>
             <div class="mt-4 border-t border-white/10 pt-4">
-                <input type="password" id="set-password" placeholder="New admin password" class="w-full p-3 bg-black/50 rounded-xl border border-cyan-500/50 mb-2">
+                <input type="password" id="set-password" placeholder="New admin password (min 4)" class="w-full p-3 bg-black/50 rounded-xl mb-2">
                 <button id="set-password-btn" class="bg-gray-700 w-full py-2 rounded-xl">Set / Change Password</button>
+                <div id="setup-message" class="text-xs text-green-400 mt-2 hidden"></div>
             </div>
         </div>
     </div>
 
-    <!-- DASHBOARD (hidden until login) -->
+    <!-- Admin Dashboard -->
     <div id="dashboard" class="hidden min-h-screen p-6">
         <div class="max-w-7xl mx-auto">
             <div class="flex justify-between items-center mb-6">
@@ -49,332 +47,395 @@
             </div>
 
             <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <div class="glass-card p-4 text-center"><i class="fas fa-users text-2xl text-cyan-400"></i><p id="stat-registrations" class="text-2xl font-bold">0</p><p>Registrations</p></div>
-                <div class="glass-card p-4 text-center"><i class="fas fa-wallet text-2xl text-green-400"></i><p id="stat-wallets" class="text-2xl font-bold">0</p><p>Wallets (imported)</p></div>
-                <div class="glass-card p-4 text-center"><i class="fas fa-chart-line text-2xl text-yellow-400"></i><p id="stat-staked" class="text-2xl font-bold">0</p><p>Total Staked ECE</p></div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="glass-card p-4 text-center"><i class="fas fa-users text-2xl text-cyan-400"></i><p id="stat-users" class="text-2xl font-bold">0</p><p>Total Users</p></div>
+                <div class="glass-card p-4 text-center"><i class="fas fa-coins text-2xl text-green-400"></i><p id="stat-total-staked" class="text-2xl font-bold">0</p><p>Total Staked (ECE)</p></div>
+                <div class="glass-card p-4 text-center"><i class="fas fa-hand-holding-usd text-2xl text-yellow-400"></i><p id="stat-active-loans" class="text-2xl font-bold">0</p><p>Active Loans</p></div>
+                <div class="glass-card p-4 text-center"><i class="fas fa-ban text-2xl text-red-400"></i><p id="stat-blocked" class="text-2xl font-bold">0</p><p>Blocked Addresses</p></div>
             </div>
 
-            <!-- Data Management Tabs -->
-            <div class="flex gap-2 mb-4 border-b border-white/20">
-                <button class="tab-btn active px-4 py-2 text-cyan-400 border-b-2 border-cyan-400" data-tab="registrations">📋 Registrations</button>
-                <button class="tab-btn px-4 py-2" data-tab="wallets">👛 Wallet Data</button>
+            <!-- Tabs -->
+            <div class="flex gap-2 mb-4 border-b border-white/20 overflow-x-auto">
+                <button class="tab-btn active px-4 py-2 text-cyan-400 border-b-2 border-cyan-400" data-tab="users">👥 Users & Wallets</button>
+                <button class="tab-btn px-4 py-2" data-tab="loans">💰 Loan Management</button>
+                <button class="tab-btn px-4 py-2" data-tab="referrals">🎁 Referral Bonuses</button>
+                <button class="tab-btn px-4 py-2" data-tab="blacklist">🚫 Blacklist (Block/Unblock)</button>
                 <button class="tab-btn px-4 py-2" data-tab="importexport">📁 Import/Export</button>
                 <button class="tab-btn px-4 py-2" data-tab="settings">⚙️ Settings</button>
             </div>
 
-            <!-- Registrations Tab -->
-            <div id="tab-registrations" class="tab-content glass-card p-4 overflow-auto">
-                <h2 class="text-xl font-bold mb-3">User Registrations (from Efikcoin-website)</h2>
-                <button id="refresh-registrations" class="bg-cyan-600 px-3 py-1 rounded text-sm mb-3"><i class="fas fa-sync-alt"></i> Refresh from LocalStorage</button>
-                <div id="registrations-list" class="overflow-auto max-h-96">
-                    <p class="text-gray-400">No registrations loaded. Click "Refresh" or import a JSON file.</p>
+            <!-- Tab: Users & Wallets -->
+            <div id="tab-users" class="tab-content glass-card p-4 overflow-auto">
+                <h2 class="text-xl font-bold mb-3">User Wallet Data</h2>
+                <button id="refresh-users" class="bg-cyan-600 px-3 py-1 rounded text-sm mb-3"><i class="fas fa-sync-alt"></i> Refresh from Imported Data</button>
+                <div id="users-list" class="overflow-auto max-h-96">
+                    <p class="text-gray-400">No user data. Import via Import/Export tab.</p>
                 </div>
             </div>
 
-            <!-- Wallets Tab -->
-            <div id="tab-wallets" class="tab-content hidden glass-card p-4 overflow-auto">
-                <h2 class="text-xl font-bold mb-3">Wallet Data (from ECE Wallet)</h2>
-                <button id="refresh-wallets" class="bg-cyan-600 px-3 py-1 rounded text-sm mb-3"><i class="fas fa-sync-alt"></i> Refresh from LocalStorage</button>
-                <div id="wallets-list" class="overflow-auto max-h-96">
-                    <p class="text-gray-400">No wallet data loaded.</p>
-                </div>
-            </div>
-
-            <!-- Import/Export Tab -->
-            <div id="tab-importexport" class="tab-content hidden glass-card p-4">
-                <h2 class="text-xl font-bold mb-3">Import / Export Data</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Tab: Loan Management -->
+            <div id="tab-loans" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Loan Requests & Disbursement</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                        <h3 class="font-bold">Export All Data</h3>
-                        <button id="export-all-btn" class="btn-primary w-full py-2 rounded mt-2">📥 Export as JSON</button>
+                        <h3 class="font-bold">Create Loan Request (Manual)</h3>
+                        <input type="text" id="loan-address" placeholder="User Address" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <input type="number" id="loan-amount" placeholder="Amount (ECE)" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <input type="text" id="loan-duration" placeholder="Duration (days)" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <button id="add-loan-btn" class="bg-green-600 w-full mt-2 py-2 rounded">Add Loan Request</button>
                     </div>
                     <div>
-                        <h3 class="font-bold">Import from JSON</h3>
-                        <input type="file" id="import-file" accept=".json" class="bg-black/50 p-2 rounded w-full mt-2">
-                        <button id="import-btn" class="bg-green-600 w-full py-2 rounded mt-2">📂 Import & Merge</button>
+                        <h3 class="font-bold">Pending/Active Loans</h3>
+                        <div id="loans-list" class="overflow-auto max-h-96 text-sm"></div>
                     </div>
                 </div>
                 <div class="mt-4 p-3 bg-yellow-600/20 rounded">
-                    <p class="text-sm"><i class="fas fa-info-circle"></i> Use this to import data from your users (they can export their localStorage using browser devtools or you can manually collect files). The admin panel will merge and display all data.</p>
+                    <p class="text-sm"><i class="fas fa-info-circle"></i> Loans are manually tracked. Disburse by sending ECE to user address from your wallet. Mark as "Disbursed" below.</p>
                 </div>
             </div>
 
-            <!-- Settings Tab -->
+            <!-- Tab: Referral Bonuses -->
+            <div id="tab-referrals" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Referral Bonus Management</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold">Credit Referral Bonus</h3>
+                        <input type="text" id="ref-address" placeholder="User Address" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <input type="number" id="ref-bonus" placeholder="Bonus Amount (ECE)" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <button id="add-bonus-btn" class="bg-green-600 w-full mt-2 py-2 rounded">Credit Bonus</button>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Bonus History</h3>
+                        <div id="bonus-list" class="overflow-auto max-h-96 text-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Blacklist -->
+            <div id="tab-blacklist" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Block / Unblock Addresses</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold">Add to Blacklist</h3>
+                        <input type="text" id="block-address" placeholder="Address to block" class="w-full bg-black/50 p-2 rounded mt-2">
+                        <textarea id="block-reason" rows="2" placeholder="Reason (optional)" class="w-full bg-black/50 p-2 rounded mt-2"></textarea>
+                        <button id="add-block-btn" class="bg-red-600 w-full mt-2 py-2 rounded">Block Address</button>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Current Blacklist</h3>
+                        <div id="blacklist-list" class="overflow-auto max-h-96 text-sm"></div>
+                        <button id="export-blacklist-btn" class="bg-blue-600 w-full mt-2 py-1 rounded text-sm">Export Blacklist JSON</button>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-blue-600/20 rounded">
+                    <p class="text-sm"><i class="fas fa-globe"></i> To make blacklist active in public wallet, host the exported JSON at a public URL and configure the wallet to check it. The wallet code can be updated to fetch this list.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Import/Export -->
+            <div id="tab-importexport" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Import / Export User Data</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold">Import User Data (JSON)</h3>
+                        <input type="file" id="import-user-file" accept=".json" class="bg-black/50 p-2 rounded w-full">
+                        <button id="import-user-btn" class="bg-green-600 w-full mt-2 py-2 rounded">Import & Merge</button>
+                        <p class="text-xs text-gray-400 mt-2">Expected format: array of objects with address, balance, staked, etc. Or export from wallet backup.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Export All Data</h3>
+                        <button id="export-all-data" class="bg-cyan-600 w-full py-2 rounded">📥 Export Full Admin Data</button>
+                        <button id="export-user-data" class="bg-blue-600 w-full mt-2 py-2 rounded">📥 Export User List Only</button>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-yellow-600/20 rounded">
+                    <p class="text-sm"><i class="fas fa-database"></i> All data is stored in your browser's localStorage. To keep permanent records, regularly export and save the JSON file.</p>
+                </div>
+            </div>
+
+            <!-- Tab: Settings -->
             <div id="tab-settings" class="tab-content hidden glass-card p-4">
-                <h2 class="text-xl font-bold mb-3">Admin Settings</h2>
+                <h2 class="text-xl font-bold mb-3">System Settings</h2>
                 <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm">Change Admin Password</label>
-                        <input type="password" id="new-admin-pwd" class="bg-black/50 p-2 rounded w-full mt-1">
-                        <button id="change-pwd-btn" class="bg-cyan-600 px-4 py-1 rounded mt-2">Update Password</button>
-                    </div>
-                    <div>
-                        <label class="block text-sm">Clear All Imported Data</label>
-                        <button id="clear-data-btn" class="bg-red-600 px-4 py-1 rounded mt-1">⚠️ Clear All Stored Data</button>
-                    </div>
-                    <div>
-                        <label class="block text-sm">System Logs</label>
-                        <pre id="system-logs" class="bg-black/50 p-2 rounded text-xs h-32 overflow-auto"></pre>
-                    </div>
+                    <div><label class="block">Change Admin Password</label><input type="password" id="new-admin-pwd" class="bg-black/50 p-2 rounded"><button id="change-pwd-btn" class="bg-cyan-600 px-4 py-1 rounded mt-1">Update</button></div>
+                    <div><label class="block">Clear All Admin Data (users, loans, blacklist)</label><button id="clear-all-data" class="bg-red-600 px-4 py-1 rounded">⚠️ Clear Everything</button></div>
+                    <div><label class="block">System Logs</label><pre id="system-logs" class="bg-black/50 p-2 rounded text-xs h-40 overflow-auto"></pre></div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Helper: log messages
+        // ---------- DATA STRUCTURES ----------
+        let users = [];          // { address, name?, balance, staked, rewards, lastSeen }
+        let loans = [];          // { address, amount, duration, status, date }
+        let bonuses = [];        // { address, amount, date }
+        let blacklist = [];      // { address, reason, date }
+        
+        // Helper: log
         function addLog(msg) {
             let logs = localStorage.getItem('admin_logs') || '';
             logs = `[${new Date().toLocaleString()}] ${msg}\n` + logs;
-            if (logs.length > 5000) logs = logs.substring(0, 5000);
+            if(logs.length > 10000) logs = logs.substring(0,10000);
             localStorage.setItem('admin_logs', logs);
             const logDiv = document.getElementById('system-logs');
-            if (logDiv) logDiv.innerText = logs;
+            if(logDiv) logDiv.innerText = logs;
         }
-
-        // Password management (SHA256 hash)
-        const getPasswordHash = (pwd) => CryptoJS.SHA256(pwd).toString();
-        let isLoggedIn = false;
-
-        function checkAuth() {
-            const storedHash = localStorage.getItem('admin_password_hash');
-            if (!storedHash) {
-                // No password set yet – allow first login only through "Set Password"
-                return false;
-            }
-            // Password is set, we need to verify later via login
-            return false;
-        }
-
-        // Login attempt
-        document.getElementById('login-btn').onclick = () => {
-            const pwd = document.getElementById('admin-password').value;
-            const storedHash = localStorage.getItem('admin_password_hash');
-            if (!storedHash) {
-                alert('No password set. Please use "Set / Change Password" first.');
-                return;
-            }
-            const hash = getPasswordHash(pwd);
-            if (hash === storedHash) {
-                isLoggedIn = true;
-                sessionStorage.setItem('admin_logged_in', 'true');
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                addLog('Admin logged in');
-                loadAllData();
-            } else {
-                alert('Incorrect password');
-                addLog('Failed login attempt');
-            }
-        };
-
-        // Set / Change password
-        document.getElementById('set-password-btn').onclick = () => {
-            const newPwd = document.getElementById('set-password').value;
-            if (!newPwd || newPwd.length < 4) {
-                alert('Password must be at least 4 characters');
-                return;
-            }
-            const hash = getPasswordHash(newPwd);
-            localStorage.setItem('admin_password_hash', hash);
-            document.getElementById('setup-message').innerHTML = 'Password set successfully! You can now log in.';
-            document.getElementById('setup-message').classList.remove('hidden');
-            setTimeout(() => document.getElementById('setup-message').classList.add('hidden'), 3000);
-            addLog('Admin password changed');
-        };
-
-        // Logout
-        document.getElementById('logout-btn').onclick = () => {
-            sessionStorage.removeItem('admin_logged_in');
-            isLoggedIn = false;
-            document.getElementById('dashboard').classList.add('hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('admin-password').value = '';
-            addLog('Admin logged out');
-        };
-
-        // Check session on load
-        if (sessionStorage.getItem('admin_logged_in') === 'true') {
-            // verify password hash still matches
-            const storedHash = localStorage.getItem('admin_password_hash');
-            if (storedHash) {
-                isLoggedIn = true;
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('dashboard').classList.remove('hidden');
-                loadAllData();
-            }
-        }
-
-        // Data storage structure: we maintain an internal object for registrations and wallets
-        let registrations = [];
-        let wallets = [];
-
-        function loadAllData() {
-            // Load from localStorage (admin's own browser) if any
-            try {
-                const storedRegs = localStorage.getItem('efikcoin_registrations');
-                if (storedRegs) {
-                    const parsed = JSON.parse(storedRegs);
-                    registrations = mergeUnique(registrations, parsed, 'email');
-                }
-                const storedWallets = localStorage.getItem('ece_wallet');
-                if (storedWallets) {
-                    // only one wallet per browser, but we can treat as an array
-                    try {
-                        const walletData = JSON.parse(storedWallets);
-                        wallets = mergeUnique(wallets, [{ address: walletData.address || 'unknown', privateKey: '[hidden]', encrypted: true, date: new Date().toISOString() }], 'address');
-                    } catch(e) {}
-                }
-                // Also load from admin's own stored data
-                const importedRegs = localStorage.getItem('admin_imported_registrations');
-                if (importedRegs) registrations = mergeUnique(registrations, JSON.parse(importedRegs), 'email');
-                const importedWallets = localStorage.getItem('admin_imported_wallets');
-                if (importedWallets) wallets = mergeUnique(wallets, JSON.parse(importedWallets), 'address');
-            } catch(e) { console.error(e); }
+        
+        // Load all data from localStorage
+        function loadData() {
+            users = JSON.parse(localStorage.getItem('admin_users') || '[]');
+            loans = JSON.parse(localStorage.getItem('admin_loans') || '[]');
+            bonuses = JSON.parse(localStorage.getItem('admin_bonuses') || '[]');
+            blacklist = JSON.parse(localStorage.getItem('admin_blacklist') || '[]');
             refreshUI();
         }
-
-        function mergeUnique(arr1, arr2, key) {
-            const map = new Map();
-            [...arr1, ...arr2].forEach(item => { if (item[key]) map.set(item[key], item); });
-            return Array.from(map.values());
+        
+        function saveData() {
+            localStorage.setItem('admin_users', JSON.stringify(users));
+            localStorage.setItem('admin_loans', JSON.stringify(loans));
+            localStorage.setItem('admin_bonuses', JSON.stringify(bonuses));
+            localStorage.setItem('admin_blacklist', JSON.stringify(blacklist));
         }
-
+        
         function refreshUI() {
-            // Update stats
-            document.getElementById('stat-registrations').innerText = registrations.length;
-            document.getElementById('stat-wallets').innerText = wallets.length;
-            let totalStaked = 0;
-            wallets.forEach(w => { if (w.staked) totalStaked += parseFloat(w.staked) || 0; });
-            document.getElementById('stat-staked').innerText = totalStaked.toFixed(2);
-            // Render registrations
-            const regContainer = document.getElementById('registrations-list');
-            if (registrations.length === 0) regContainer.innerHTML = '<p class="text-gray-400">No registrations. Import a JSON file or wait for user signups.</p>';
+            // Stats
+            document.getElementById('stat-users').innerText = users.length;
+            let totalStaked = users.reduce((sum,u) => sum + (parseFloat(u.staked)||0), 0);
+            document.getElementById('stat-total-staked').innerText = totalStaked.toFixed(2);
+            let activeLoans = loans.filter(l => l.status === 'active').length;
+            document.getElementById('stat-active-loans').innerText = activeLoans;
+            document.getElementById('stat-blocked').innerText = blacklist.length;
+            
+            // Users table
+            const usersDiv = document.getElementById('users-list');
+            if(users.length === 0) usersDiv.innerHTML = '<p class="text-gray-400">No user data imported.</p>';
             else {
-                let html = '<table class="admin-table"><tr><th>Name</th><th>Email</th><th>Feedback</th><th>Date</th></tr>';
-                registrations.forEach(r => {
-                    html += `<tr><td>${escapeHtml(r.name || '')}</td><td>${escapeHtml(r.email)}</td><td>${escapeHtml(r.feedback || '')}</td><td>${r.date || ''}</td></tr>`;
+                let html = '<table class="admin-table"><tr><th>Address</th><th>Name</th><th>Balance (ECE)</th><th>Staked</th><th>Rewards</th><th>Last Seen</th><th>Status</th></tr>';
+                users.forEach(u => {
+                    let isBlocked = blacklist.some(b => b.address.toLowerCase() === u.address.toLowerCase());
+                    html += `<tr><td class="font-mono text-xs">${u.address}</td><td>${u.name || ''}</td><td>${u.balance || '0'}</td><td>${u.staked || '0'}</td><td>${u.rewards || '0'}</td><td>${u.lastSeen || ''}</td><td>${isBlocked ? '<span class="badge-blocked">Blocked</span>' : '<span class="badge-active">Active</span>'}</td></tr>`;
                 });
                 html += '</table>';
-                regContainer.innerHTML = html;
+                usersDiv.innerHTML = html;
             }
-            // Render wallets
-            const walletContainer = document.getElementById('wallets-list');
-            if (wallets.length === 0) walletContainer.innerHTML = '<p class="text-gray-400">No wallet data. Import JSON or use the wallet app.</p>';
+            
+            // Loans list
+            const loansDiv = document.getElementById('loans-list');
+            if(loans.length === 0) loansDiv.innerHTML = '<p class="text-gray-400">No loans.</p>';
             else {
-                let html = '<table class="admin-table"><tr><th>Address</th><th>Staked ECE</th><th>Rewards</th><th>Date</th></tr>';
-                wallets.forEach(w => {
-                    html += `<tr><td class="font-mono text-xs">${w.address || 'unknown'}</td><td>${w.staked || '0'}</td><td>${w.rewards || '0'}</td><td>${w.date || ''}</td></tr>`;
+                let html = '<table class="admin-table"><tr><th>Address</th><th>Amount</th><th>Duration</th><th>Status</th><th>Date</th><th>Action</th></tr>';
+                loans.forEach((l, idx) => {
+                    html += `<tr><td class="font-mono text-xs">${l.address}</td><td>${l.amount}</td><td>${l.duration}d</td><td>${l.status}</td><td>${l.date}</td><td>${l.status === 'pending' ? `<button onclick="markDisbursed(${idx})" class="bg-green-600 text-xs px-2 py-1 rounded">Mark Disbursed</button>` : '-'}</td></tr>`;
                 });
                 html += '</table>';
-                walletContainer.innerHTML = html;
+                loansDiv.innerHTML = html;
+            }
+            
+            // Bonuses list
+            const bonusDiv = document.getElementById('bonus-list');
+            if(bonuses.length === 0) bonusDiv.innerHTML = '<p class="text-gray-400">No bonuses credited.</p>';
+            else {
+                let html = '<table class="admin-table"><tr><th>Address</th><th>Amount</th><th>Date</th></tr>';
+                bonuses.forEach(b => { html += `<tr><td class="font-mono text-xs">${b.address}</td><td>${b.amount}</td><td>${b.date}</td></tr>`; });
+                html += '</table>';
+                bonusDiv.innerHTML = html;
+            }
+            
+            // Blacklist list
+            const blacklistDiv = document.getElementById('blacklist-list');
+            if(blacklist.length === 0) blacklistDiv.innerHTML = '<p class="text-gray-400">No blocked addresses.</p>';
+            else {
+                let html = '<table class="admin-table"><tr><th>Address</th><th>Reason</th><th>Date</th><th>Action</th></tr>';
+                blacklist.forEach((b, idx) => {
+                    html += `<tr><td class="font-mono text-xs">${b.address}</td><td>${b.reason || ''}</td><td>${b.date}</td><td><button onclick="unblockAddress(${idx})" class="bg-red-600 text-xs px-2 py-1 rounded">Unblock</button></td></tr>`;
+                });
+                html += '</table>';
+                blacklistDiv.innerHTML = html;
             }
         }
-
-        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
-
-        // Refresh from current browser's localStorage (useful if admin uses same machine as users)
-        document.getElementById('refresh-registrations').onclick = () => {
-            try {
-                const stored = localStorage.getItem('efikcoin_registrations');
-                if (stored) {
-                    const newRegs = JSON.parse(stored);
-                    registrations = mergeUnique(registrations, newRegs, 'email');
-                    localStorage.setItem('admin_imported_registrations', JSON.stringify(registrations));
-                    refreshUI();
-                    addLog('Refreshed registrations from localStorage');
-                } else alert('No registrations found in this browser\'s localStorage.');
-            } catch(e) { alert('Error: '+e.message); }
+        
+        // Global functions for buttons
+        window.markDisbursed = (idx) => {
+            loans[idx].status = 'active';
+            saveData();
+            refreshUI();
+            addLog(`Loan disbursed to ${loans[idx].address}`);
         };
-        document.getElementById('refresh-wallets').onclick = () => {
-            try {
-                const stored = localStorage.getItem('ece_wallet');
-                if (stored) {
-                    const walletData = JSON.parse(stored);
-                    const newWallet = { address: walletData.address || 'unknown', privateKey: '[hidden]', staked: localStorage.getItem('staked_ece') || '0', rewards: localStorage.getItem('rewards_ece') || '0', date: new Date().toISOString() };
-                    wallets = mergeUnique(wallets, [newWallet], 'address');
-                    localStorage.setItem('admin_imported_wallets', JSON.stringify(wallets));
-                    refreshUI();
-                    addLog('Refreshed wallet data from localStorage');
-                } else alert('No wallet found.');
-            } catch(e) { alert(e.message); }
+        window.unblockAddress = (idx) => {
+            blacklist.splice(idx,1);
+            saveData();
+            refreshUI();
+            addLog(`Address unblocked`);
         };
-
-        // Export all data
-        document.getElementById('export-all-btn').onclick = () => {
-            const exportData = { registrations, wallets, exportDate: new Date().toISOString() };
-            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `efikcoin_admin_export_${Date.now()}.json`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            addLog('Exported admin data');
+        
+        // Loan management
+        document.getElementById('add-loan-btn').onclick = () => {
+            let addr = document.getElementById('loan-address').value.trim();
+            let amount = document.getElementById('loan-amount').value;
+            let duration = document.getElementById('loan-duration').value;
+            if(!addr || !amount || !duration) { alert("Fill all fields"); return; }
+            loans.push({ address: addr, amount: amount, duration: duration, status: 'pending', date: new Date().toISOString() });
+            saveData();
+            refreshUI();
+            document.getElementById('loan-address').value = '';
+            document.getElementById('loan-amount').value = '';
+            document.getElementById('loan-duration').value = '';
+            addLog(`Loan request added for ${addr}`);
         };
-
-        // Import JSON file
-        document.getElementById('import-btn').onclick = () => {
-            const fileInput = document.getElementById('import-file');
-            if (!fileInput.files.length) { alert('Select a JSON file'); return; }
-            const file = fileInput.files[0];
-            const reader = new FileReader();
+        
+        // Referral bonus
+        document.getElementById('add-bonus-btn').onclick = () => {
+            let addr = document.getElementById('ref-address').value.trim();
+            let amount = document.getElementById('ref-bonus').value;
+            if(!addr || !amount) { alert("Fill address and amount"); return; }
+            bonuses.push({ address: addr, amount: amount, date: new Date().toISOString() });
+            saveData();
+            refreshUI();
+            addLog(`Bonus credited to ${addr}: ${amount} ECE`);
+            alert(`Bonus credited. Remember to send ${amount} ECE to ${addr} from your wallet.`);
+        };
+        
+        // Blacklist
+        document.getElementById('add-block-btn').onclick = () => {
+            let addr = document.getElementById('block-address').value.trim();
+            let reason = document.getElementById('block-reason').value;
+            if(!addr) { alert("Enter address"); return; }
+            if(!ethers.utils.isAddress(addr)) { alert("Invalid address"); return; }
+            blacklist.push({ address: addr, reason: reason, date: new Date().toISOString() });
+            saveData();
+            refreshUI();
+            document.getElementById('block-address').value = '';
+            document.getElementById('block-reason').value = '';
+            addLog(`Address blocked: ${addr}`);
+        };
+        document.getElementById('export-blacklist-btn').onclick = () => {
+            let data = JSON.stringify(blacklist, null, 2);
+            let blob = new Blob([data], {type: 'application/json'});
+            let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `efikcoin_blacklist_${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href);
+        };
+        
+        // Import user data (from wallet exports or registrations)
+        document.getElementById('import-user-btn').onclick = () => {
+            let file = document.getElementById('import-user-file').files[0];
+            if(!file) { alert("Select a JSON file"); return; }
+            let reader = new FileReader();
             reader.onload = (e) => {
                 try {
-                    const data = JSON.parse(e.target.result);
-                    if (data.registrations) registrations = mergeUnique(registrations, data.registrations, 'email');
-                    if (data.wallets) wallets = mergeUnique(wallets, data.wallets, 'address');
-                    localStorage.setItem('admin_imported_registrations', JSON.stringify(registrations));
-                    localStorage.setItem('admin_imported_wallets', JSON.stringify(wallets));
+                    let imported = JSON.parse(e.target.result);
+                    if(Array.isArray(imported)) {
+                        imported.forEach(item => {
+                            if(item.address) {
+                                let existing = users.find(u => u.address.toLowerCase() === item.address.toLowerCase());
+                                if(existing) Object.assign(existing, item);
+                                else users.push(item);
+                            }
+                        });
+                    } else if(imported.address) {
+                        let existing = users.find(u => u.address.toLowerCase() === imported.address.toLowerCase());
+                        if(existing) Object.assign(existing, imported);
+                        else users.push(imported);
+                    }
+                    saveData();
                     refreshUI();
-                    addLog('Imported data from JSON');
-                    alert('Import successful!');
-                } catch(err) { alert('Invalid JSON: '+err.message); }
+                    addLog(`Imported ${imported.length || 1} user records`);
+                    alert("Import successful");
+                } catch(err) { alert("Invalid JSON: "+err.message); }
             };
             reader.readAsText(file);
         };
-
-        // Change admin password
-        document.getElementById('change-pwd-btn').onclick = () => {
-            const newPwd = document.getElementById('new-admin-pwd').value;
-            if (!newPwd || newPwd.length < 4) { alert('Password must be at least 4 characters'); return; }
-            const hash = getPasswordHash(EfikcoinWebsite090699$);
-            localStorage.setItem('EfikcoinWebsite090699$);
-            addLog('EfikcoinWebsite090699$');
-            alert('Password updated. You will need to log in again.');
-            if (confirm('Logout now?')) document.getElementById('logout-btn').click();
+        
+        // Export data
+        document.getElementById('export-all-data').onclick = () => {
+            let full = { users, loans, bonuses, blacklist, exportDate: new Date().toISOString() };
+            let blob = new Blob([JSON.stringify(full,null,2)], {type:'application/json'});
+            let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `efikcoin_admin_full_${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href);
         };
-
-        // Clear all imported data
-        document.getElementById('clear-data-btn').onclick = () => {
-            if (confirm('⚠️ This will remove all imported registrations and wallets from this admin panel. This action cannot be undone. Continue?')) {
-                registrations = [];
-                wallets = [];
-                localStorage.removeItem('admin_imported_registrations');
-                localStorage.removeItem('admin_imported_wallets');
+        document.getElementById('export-user-data').onclick = () => {
+            let blob = new Blob([JSON.stringify(users,null,2)], {type:'application/json'});
+            let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `efikcoin_users_${Date.now()}.json`; a.click(); URL.revokeObjectURL(a.href);
+        };
+        
+        // Settings
+        document.getElementById('change-pwd-btn').onclick = () => {
+            let newPwd = document.getElementById('new-admin-pwd').value;
+            if(newPwd.length>=4) {
+                let hash = CryptoJS.SHA256(newPwd).toString();
+                localStorage.setItem('admin_hash', hash);
+                addLog("Admin password changed");
+                alert("Password updated. You will need to login again.");
+                if(confirm("Logout now?")) document.getElementById('logout-btn').click();
+            } else alert("Min 4 characters");
+        };
+        document.getElementById('clear-all-data').onclick = () => {
+            if(confirm("⚠️ Delete ALL admin data (users, loans, bonuses, blacklist)? This cannot be undone.")) {
+                users = []; loans = []; bonuses = []; blacklist = [];
+                saveData();
                 refreshUI();
-                addLog('Cleared all admin data');
-                alert('Data cleared.');
+                addLog("Cleared all admin data");
+                alert("All data cleared.");
             }
         };
-
+        
         // Tabs
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-b-2', 'border-cyan-400', 'text-cyan-400'));
-                btn.classList.add('active', 'border-b-2', 'border-cyan-400', 'text-cyan-400');
-                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active','border-b-2','border-cyan-400','text-cyan-400'));
+                btn.classList.add('active','border-b-2','border-cyan-400','text-cyan-400');
+                let tabId = btn.getAttribute('data-tab');
                 document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
                 document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             };
         });
-
+        
+        // Auth
+        function checkAuth() {
+            let storedHash = localStorage.getItem('admin_hash');
+            if(storedHash && storedHash !== "") return true;
+            return false;
+        }
+        document.getElementById('set-password-btn').onclick = () => {
+            let newPwd = document.getElementById('EfikcoinWebsite090699$').value;
+            if(newPwd.length>=4) {
+                let hash = CryptoJS.SHA256(EfikcoinWebsite090699$).toString();
+                localStorage.setItem('admin_hash', hash);
+                document.getElementById('setup-message').innerText = "Password set! You can now login.";
+                document.getElementById('setup-message').classList.remove('hidden');
+                setTimeout(() => document.getElementById('setup-message').classList.add('hidden'), 3000);
+                addLog("EfikcoinWebsite090699$");
+            } else alert("Min 4 characters");
+        };
+        document.getElementById('login-btn').onclick = () => {
+            let pwd = document.getElementById('admin-password').value;
+            let hash = CryptoJS.SHA256(pwd).toString();
+            let stored = localStorage.getItem('admin_hash');
+            if(stored && hash === stored) {
+                sessionStorage.setItem('admin_logged_in', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadData();
+                addLog("Admin logged in");
+            } else {
+                alert("Wrong password or no password set (use Set Password first)");
+            }
+        };
+        document.getElementById('logout-btn').onclick = () => {
+            sessionStorage.removeItem('admin_logged_in');
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-password').value = '';
+        };
+        if(sessionStorage.getItem('admin_logged_in') === 'true' && localStorage.getItem('admin_hash')) {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            loadData();
+        }
+        
         // Load logs
-        const logs = localStorage.getItem('admin_logs') || '';
-        if (document.getElementById('system-logs')) document.getElementById('system-logs').innerText = logs;
         setInterval(() => {
-            if (document.getElementById('system-logs')) document.getElementById('system-logs').innerText = localStorage.getItem('admin_logs') || '';
-        }, 3000);
+            let logs = localStorage.getItem('admin_logs') || '';
+            if(document.getElementById('system-logs')) document.getElementById('system-logs').innerText = logs;
+        }, 2000);
     </script>
 </body>
 </html>
