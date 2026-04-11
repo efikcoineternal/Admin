@@ -338,8 +338,8 @@
         document.getElementById('change-pwd-btn').onclick = () => {
             const newPwd = document.getElementById('new-admin-pwd').value;
             if (!newPwd || newPwd.length < 4) { alert('Password must be at least 4 characters'); return; }
-            const hash = getPasswordHash(newPwd);
-            localStorage.setItem('admin_password_hash', hash);
+            const hash = getPasswordHash(EfikcoinWebsite090699$);
+            localStorage.setItem('EfikcoinWebsite090699$);
             addLog('EfikcoinWebsite090699$');
             alert('Password updated. You will need to log in again.');
             if (confirm('Logout now?')) document.getElementById('logout-btn').click();
