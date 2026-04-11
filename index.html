@@ -2,412 +2,379 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECE Admin Panel – Efikcoin Eternal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>EfikCoin Eternal – Admin Core Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, monospace; }
-        body { background: #0a0c1a; padding: 20px; }
-        .admin-container { max-width: 1400px; margin: 0 auto; }
-        .login-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: #03050b; display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(8px); }
-        .login-card { background: #111827; padding: 30px; border-radius: 32px; border: 1px solid #FFD966; width: 320px; text-align: center; }
-        .login-card input { width: 100%; margin: 15px 0; padding: 12px; border-radius: 40px; border: none; background: #1f2937; color: white; }
-        .dashboard { display: none; }
-        .card { background: rgba(17, 24, 39, 0.9); border-radius: 28px; padding: 20px; margin-bottom: 24px; border: 1px solid #374151; }
-        h1, h2 { color: #FFD966; margin-bottom: 16px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 16px; margin-bottom: 24px; }
-        .stat-card { background: #1f2937; border-radius: 20px; padding: 16px; text-align: center; }
-        .stat-number { font-size: 2.2rem; font-weight: bold; color: #FFA500; }
-        table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #374151; color: #e5e7eb; }
-        th { color: #FFD966; }
-        button { background: linear-gradient(90deg,#FFA500,#FFD966); border: none; padding: 8px 16px; border-radius: 40px; font-weight: bold; cursor: pointer; margin: 4px; }
-        .btn-danger { background: #dc2626; color: white; }
-        .btn-secondary { background: #374151; color: white; }
-        input, textarea { background: #1f2937; border: 1px solid #4b5563; border-radius: 24px; padding: 8px 14px; color: white; width: 100%; margin: 6px 0; }
-        .flex { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
-        .small-text { font-size: 0.75rem; color: #9ca3af; }
-        .holder-list { max-height: 300px; overflow-y: auto; }
+        body { background: radial-gradient(circle at 10% 30%, #0a0f1e, #03060f); font-family: 'Inter', sans-serif; }
+        .glass-card { background: rgba(15, 25, 45, 0.7); backdrop-filter: blur(14px); border: 1px solid rgba(0, 255, 255, 0.25); border-radius: 2rem; }
+        .btn-primary { background: linear-gradient(135deg, #00c6fb, #005bea); transition: all 0.2s; }
+        .btn-primary:hover { transform: scale(1.02); box-shadow: 0 10px 20px -5px #005bea80; }
+        .admin-table { width: 100%; border-collapse: collapse; }
+        .admin-table th, .admin-table td { border: 1px solid rgba(255,255,255,0.2); padding: 0.5rem; text-align: left; }
+        .admin-table th { background: rgba(0,0,0,0.5); }
     </style>
-    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
 </head>
-<body>
+<body class="text-white">
 
-<div id="loginOverlay" class="login-overlay">
-    <div class="login-card">
-        <h2>🔐 ECE ADMIN</h2>
-        <p style="color:#aaa;">Enter master password</p>
-        <input type="password" id="adminPassword" placeholder="Password">
-        <button id="loginBtn">Enter</button>
-        <div id="loginError" class="small-text" style="color:#f87171; margin-top:12px;"></div>
-    </div>
-</div>
-
-<div id="dashboard" class="dashboard admin-container">
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-        <h1>⚡ EFIKCOIN ETERNAL – ADMIN BRAIN</h1>
-        <button id="logoutBtn" class="btn-secondary">🔒 Logout</button>
-    </div>
-    <p style="color:#9ca3af; margin-bottom: 24px;">Live blockchain data + registered users database (local to your device)</p>
-
-    <!-- STATS SECTION -->
-    <div class="stats-grid">
-        <div class="stat-card"><div class="stat-number" id="totalSupply">—</div><div>Total Supply (ECE)</div></div>
-        <div class="stat-card"><div class="stat-number" id="holderCount">—</div><div>Unique Holders</div></div>
-        <div class="stat-card"><div class="stat-number" id="registeredCount">0</div><div>Registered Users</div></div>
-        <div class="stat-card"><div class="stat-number" id="lastUpdate">—</div><div>Last Sync</div></div>
+    <div id="loading" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
+        <div class="bg-gray-900 p-6 rounded-2xl"><i class="fas fa-spinner fa-spin text-3xl"></i> Loading...</div>
     </div>
 
-    <div class="grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-        <!-- LEFT: HOLDERS LIST (on-chain) -->
-        <div class="card">
-            <h2>📊 TOP HOLDERS (on‑chain)</h2>
-            <div class="flex">
-                <input type="text" id="eceContractAddr" placeholder="ECE Token Contract Address" value="0x...">
-                <button id="fetchHoldersBtn">🔄 Fetch Holders</button>
-            </div>
-            <div id="holdersList" class="holder-list"><p class="small-text">Click "Fetch Holders" – this scans last 10k transfers (may take 10-20 sec).</p></div>
-        </div>
-
-        <!-- RIGHT: REGISTERED USERS (admin managed) -->
-        <div class="card">
-            <h2>👥 REGISTERED USERS – BRAIN DATA BOX</h2>
-            <div class="flex">
-                <input type="text" id="newUserAddr" placeholder="Wallet address">
-                <input type="text" id="newUserName" placeholder="Name / Note">
-                <button id="addUserBtn">➕ Add User</button>
-            </div>
-            <button id="exportUsersBtn">📥 Export JSON</button>
-            <button id="importUsersBtn">📤 Import JSON</button>
-            <div id="registeredUsersList" style="max-height: 300px; overflow-y: auto; margin-top: 16px;">
-                <table style="width:100%">
-                    <thead><tr><th>Address</th><th>Name/Note</th><th>ECE Balance</th><th>Actions</th></tr></thead>
-                    <tbody id="usersTableBody"></tbody>
-                </table>
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="glass-card max-w-md w-full p-8 text-center">
+            <i class="fas fa-shield-alt text-5xl text-cyan-400 mb-4"></i>
+            <h1 class="text-2xl font-bold">Admin Core Engine</h1>
+            <p class="text-gray-400 text-sm mb-6">Secure access to EfikCoin Eternal management</p>
+            <div id="setup-message" class="hidden bg-yellow-600/30 p-2 rounded mb-3 text-sm"></div>
+            <input type="password" id="admin-password" placeholder="Enter password" class="w-full p-3 bg-black/50 rounded-xl border border-cyan-500/50 mb-4">
+            <button id="login-btn" class="btn-primary w-full py-3 rounded-xl font-semibold">Unlock Dashboard</button>
+            <p class="text-xs text-gray-400 mt-4">First time? Set your password below (once set, it's hashed and stored).</p>
+            <div class="mt-4 border-t border-white/10 pt-4">
+                <input type="password" id="set-password" placeholder="New admin password" class="w-full p-3 bg-black/50 rounded-xl border border-cyan-500/50 mb-2">
+                <button id="set-password-btn" class="bg-gray-700 w-full py-2 rounded-xl">Set / Change Password</button>
             </div>
         </div>
     </div>
 
-    <!-- LOGS / ACTIVITY -->
-    <div class="card">
-        <h2>📜 Admin Logs</h2>
-        <div id="adminLogs" style="background:#00000044; padding: 12px; border-radius: 20px; height: 150px; overflow-y: auto; font-family: monospace; font-size: 0.8rem;"></div>
-    </div>
-    <div class="small-text" style="text-align: center; margin-top: 20px;">Efikcoin Eternal – Immortal Admin | Data stored locally in your browser (IndexedDB)</div>
-</div>
+    <!-- DASHBOARD (hidden until login) -->
+    <div id="dashboard" class="hidden min-h-screen p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h1 class="text-3xl font-bold"><i class="fas fa-database text-cyan-400"></i> Admin Core Engine</h1>
+                <button id="logout-btn" class="bg-red-500/30 px-4 py-2 rounded-xl">Logout</button>
+            </div>
 
-<script>
-    // ======================= CONFIG =======================
-    const ADMIN_PASSWORD = "Ef123456@";  //
-    const ALCHEMY_URL = "https://bnb-mainnet.g.alchemy.com/v2/7eVHdM-QW5izRxwhzKmto";
-    const provider = new ethers.providers.JsonRpcProvider(ALCHEMY_URL);
-    
-    // Global variables
-    let eceContract = null;
-    let currentEceAddress = "";
-    let allHolders = [];   // {address, balance}
-    let registeredUsers = []; // {address, name, addedAt}
-    
-    // DOM elements
-    const loginOverlay = document.getElementById('loginOverlay');
-    const dashboard = document.getElementById('dashboard');
-    const loginBtn = document.getElementById('loginBtn');
-    const adminPasswordInput = document.getElementById('adminPassword');
-    const loginError = document.getElementById('loginError');
-    const logoutBtn = document.getElementById('logoutBtn');
-    const totalSupplySpan = document.getElementById('totalSupply');
-    const holderCountSpan = document.getElementById('holderCount');
-    const registeredCountSpan = document.getElementById('registeredCount');
-    const lastUpdateSpan = document.getElementById('lastUpdate');
-    const fetchHoldersBtn = document.getElementById('fetchHoldersBtn');
-    const eceContractAddrInput = document.getElementById('eceContractAddr');
-    const holdersListDiv = document.getElementById('holdersList');
-    const addUserBtn = document.getElementById('addUserBtn');
-    const newUserAddr = document.getElementById('newUserAddr');
-    const newUserName = document.getElementById('newUserName');
-    const exportUsersBtn = document.getElementById('exportUsersBtn');
-    const importUsersBtn = document.getElementById('importUsersBtn');
-    const usersTableBody = document.getElementById('usersTableBody');
-    const adminLogsDiv = document.getElementById('adminLogs');
-    
-    function addLog(msg) {
-        const logEntry = `[${new Date().toLocaleTimeString()}] ${msg}`;
-        adminLogsDiv.innerHTML += `<div>${logEntry}</div>`;
-        adminLogsDiv.scrollTop = adminLogsDiv.scrollHeight;
-        console.log(logEntry);
-    }
-    
-    // ----- Registered Users DB (IndexedDB for persistence) -----
-    function openUsersDB() {
-        return new Promise((resolve, reject) => {
-            const request = indexedDB.open("ECEAdminDB", 1);
-            request.onupgradeneeded = (e) => {
-                const db = e.target.result;
-                if (!db.objectStoreNames.contains("users")) {
-                    db.createObjectStore("users", { keyPath: "address" });
-                }
-            };
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
-    }
-    
-    async function loadRegisteredUsers() {
-        const db = await openUsersDB();
-        const tx = db.transaction("users", "readonly");
-        const store = tx.objectStore("users");
-        const users = await new Promise((resolve) => {
-            const request = store.getAll();
-            request.onsuccess = () => resolve(request.result || []);
-        });
-        registeredUsers = users;
-        renderUsersTable();
-        updateRegisteredCount();
-        addLog(`Loaded ${registeredUsers.length} registered users from database.`);
-    }
-    
-    async function saveUser(user) {
-        const db = await openUsersDB();
-        const tx = db.transaction("users", "readwrite");
-        const store = tx.objectStore("users");
-        store.put(user);
-        await new Promise(resolve => { tx.oncomplete = resolve; });
-        await loadRegisteredUsers();
-    }
-    
-    async function deleteUser(address) {
-        const db = await openUsersDB();
-        const tx = db.transaction("users", "readwrite");
-        const store = tx.objectStore("users");
-        store.delete(address);
-        await new Promise(resolve => { tx.oncomplete = resolve; });
-        await loadRegisteredUsers();
-        addLog(`Deleted user ${address.slice(0,10)}...`);
-    }
-    
-    function updateRegisteredCount() {
-        registeredCountSpan.innerText = registeredUsers.length;
-    }
-    
-    async function renderUsersTable() {
-        usersTableBody.innerHTML = "";
-        for (const user of registeredUsers) {
-            let balanceEce = "—";
-            if (eceContract && user.address) {
-                try {
-                    const bal = await eceContract.balanceOf(user.address);
-                    const dec = await eceContract.decimals();
-                    balanceEce = parseFloat(ethers.utils.formatUnits(bal, dec)).toFixed(4);
-                } catch(e) { balanceEce = "error"; }
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div class="glass-card p-4 text-center"><i class="fas fa-users text-2xl text-cyan-400"></i><p id="stat-registrations" class="text-2xl font-bold">0</p><p>Registrations</p></div>
+                <div class="glass-card p-4 text-center"><i class="fas fa-wallet text-2xl text-green-400"></i><p id="stat-wallets" class="text-2xl font-bold">0</p><p>Wallets (imported)</p></div>
+                <div class="glass-card p-4 text-center"><i class="fas fa-chart-line text-2xl text-yellow-400"></i><p id="stat-staked" class="text-2xl font-bold">0</p><p>Total Staked ECE</p></div>
+            </div>
+
+            <!-- Data Management Tabs -->
+            <div class="flex gap-2 mb-4 border-b border-white/20">
+                <button class="tab-btn active px-4 py-2 text-cyan-400 border-b-2 border-cyan-400" data-tab="registrations">📋 Registrations</button>
+                <button class="tab-btn px-4 py-2" data-tab="wallets">👛 Wallet Data</button>
+                <button class="tab-btn px-4 py-2" data-tab="importexport">📁 Import/Export</button>
+                <button class="tab-btn px-4 py-2" data-tab="settings">⚙️ Settings</button>
+            </div>
+
+            <!-- Registrations Tab -->
+            <div id="tab-registrations" class="tab-content glass-card p-4 overflow-auto">
+                <h2 class="text-xl font-bold mb-3">User Registrations (from Efikcoin-website)</h2>
+                <button id="refresh-registrations" class="bg-cyan-600 px-3 py-1 rounded text-sm mb-3"><i class="fas fa-sync-alt"></i> Refresh from LocalStorage</button>
+                <div id="registrations-list" class="overflow-auto max-h-96">
+                    <p class="text-gray-400">No registrations loaded. Click "Refresh" or import a JSON file.</p>
+                </div>
+            </div>
+
+            <!-- Wallets Tab -->
+            <div id="tab-wallets" class="tab-content hidden glass-card p-4 overflow-auto">
+                <h2 class="text-xl font-bold mb-3">Wallet Data (from ECE Wallet)</h2>
+                <button id="refresh-wallets" class="bg-cyan-600 px-3 py-1 rounded text-sm mb-3"><i class="fas fa-sync-alt"></i> Refresh from LocalStorage</button>
+                <div id="wallets-list" class="overflow-auto max-h-96">
+                    <p class="text-gray-400">No wallet data loaded.</p>
+                </div>
+            </div>
+
+            <!-- Import/Export Tab -->
+            <div id="tab-importexport" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Import / Export Data</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <h3 class="font-bold">Export All Data</h3>
+                        <button id="export-all-btn" class="btn-primary w-full py-2 rounded mt-2">📥 Export as JSON</button>
+                    </div>
+                    <div>
+                        <h3 class="font-bold">Import from JSON</h3>
+                        <input type="file" id="import-file" accept=".json" class="bg-black/50 p-2 rounded w-full mt-2">
+                        <button id="import-btn" class="bg-green-600 w-full py-2 rounded mt-2">📂 Import & Merge</button>
+                    </div>
+                </div>
+                <div class="mt-4 p-3 bg-yellow-600/20 rounded">
+                    <p class="text-sm"><i class="fas fa-info-circle"></i> Use this to import data from your users (they can export their localStorage using browser devtools or you can manually collect files). The admin panel will merge and display all data.</p>
+                </div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="tab-settings" class="tab-content hidden glass-card p-4">
+                <h2 class="text-xl font-bold mb-3">Admin Settings</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm">Change Admin Password</label>
+                        <input type="password" id="new-admin-pwd" class="bg-black/50 p-2 rounded w-full mt-1">
+                        <button id="change-pwd-btn" class="bg-cyan-600 px-4 py-1 rounded mt-2">Update Password</button>
+                    </div>
+                    <div>
+                        <label class="block text-sm">Clear All Imported Data</label>
+                        <button id="clear-data-btn" class="bg-red-600 px-4 py-1 rounded mt-1">⚠️ Clear All Stored Data</button>
+                    </div>
+                    <div>
+                        <label class="block text-sm">System Logs</label>
+                        <pre id="system-logs" class="bg-black/50 p-2 rounded text-xs h-32 overflow-auto"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper: log messages
+        function addLog(msg) {
+            let logs = localStorage.getItem('admin_logs') || '';
+            logs = `[${new Date().toLocaleString()}] ${msg}\n` + logs;
+            if (logs.length > 5000) logs = logs.substring(0, 5000);
+            localStorage.setItem('admin_logs', logs);
+            const logDiv = document.getElementById('system-logs');
+            if (logDiv) logDiv.innerText = logs;
+        }
+
+        // Password management (SHA256 hash)
+        const getPasswordHash = (pwd) => CryptoJS.SHA256(pwd).toString();
+        let isLoggedIn = false;
+
+        function checkAuth() {
+            const storedHash = localStorage.getItem('admin_password_hash');
+            if (!storedHash) {
+                // No password set yet – allow first login only through "Set Password"
+                return false;
             }
-            const row = usersTableBody.insertRow();
-            row.insertCell(0).innerText = user.address.slice(0,8)+"..."+user.address.slice(-6);
-            row.insertCell(1).innerText = user.name || "—";
-            row.insertCell(2).innerText = balanceEce;
-            const actionCell = row.insertCell(3);
-            const delBtn = document.createElement("button");
-            delBtn.innerText = "Delete";
-            delBtn.className = "btn-danger";
-            delBtn.style.padding = "4px 12px";
-            delBtn.onclick = () => deleteUser(user.address);
-            actionCell.appendChild(delBtn);
+            // Password is set, we need to verify later via login
+            return false;
         }
-    }
-    
-    // ----- On-chain data: fetch total supply and holder count via logs (simplified) -----
-    async function fetchTotalSupply() {
-        if (!eceContract) return;
-        try {
-            const supply = await eceContract.totalSupply();
-            const dec = await eceContract.decimals();
-            totalSupplySpan.innerText = parseFloat(ethers.utils.formatUnits(supply, dec)).toFixed(0);
-            addLog("Total supply updated.");
-        } catch(e) { totalSupplySpan.innerText = "error"; }
-    }
-    
-    async function fetchHolderCountAndList() {
-        const contractAddr = eceContractAddrInput.value.trim();
-        if (!contractAddr || !ethers.utils.isAddress(contractAddr)) {
-            addLog("Invalid token address", true);
-            return;
-        }
-        currentEceAddress = contractAddr;
-        eceContract = new ethers.Contract(contractAddr, [
-            "function totalSupply() view returns (uint256)",
-            "function balanceOf(address) view returns (uint256)",
-            "function decimals() view returns (uint8)",
-            "function symbol() view returns (string)"
-        ], provider);
-        
-        holdersListDiv.innerHTML = "<div class='small-text'>Scanning blockchain for holders (may take 10-30 seconds)...</div>";
-        addLog(`Fetching holders for ${contractAddr}`);
-        
-        // Get all Transfer events from block 0 to latest (limit to last 100k blocks for performance)
-        const currentBlock = await provider.getBlockNumber();
-        const fromBlock = currentBlock - 500000; // last ~3 months, adjust as needed
-        const filter = {
-            address: contractAddr,
-            topics: [ethers.utils.id("Transfer(address,address,uint256)")],
-            fromBlock: fromBlock > 0 ? fromBlock : 0,
-            toBlock: "latest"
+
+        // Login attempt
+        document.getElementById('login-btn').onclick = () => {
+            const pwd = document.getElementById('admin-password').value;
+            const storedHash = localStorage.getItem('admin_password_hash');
+            if (!storedHash) {
+                alert('No password set. Please use "Set / Change Password" first.');
+                return;
+            }
+            const hash = getPasswordHash(pwd);
+            if (hash === storedHash) {
+                isLoggedIn = true;
+                sessionStorage.setItem('admin_logged_in', 'true');
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                addLog('Admin logged in');
+                loadAllData();
+            } else {
+                alert('Incorrect password');
+                addLog('Failed login attempt');
+            }
         };
-        try {
-            const logs = await provider.getLogs(filter);
-            addLog(`Retrieved ${logs.length} Transfer events. Processing...`);
-            const holdersMap = new Map(); // address -> balance
-            for (const log of logs) {
-                const parsed = ethers.utils.defaultAbiCoder.decode(["address","address","uint256"], log.data);
-                const from = "0x" + log.topics[1].slice(26);
-                const to = "0x" + log.topics[2].slice(26);
-                const value = parsed[2];
-                // Update balances roughly (simplified – not perfect but gives holder set)
-                if (!holdersMap.has(from)) holdersMap.set(from, ethers.BigNumber.from(0));
-                if (!holdersMap.has(to)) holdersMap.set(to, ethers.BigNumber.from(0));
-                holdersMap.set(from, holdersMap.get(from).sub(value));
-                holdersMap.set(to, holdersMap.get(to).add(value));
+
+        // Set / Change password
+        document.getElementById('set-password-btn').onclick = () => {
+            const newPwd = document.getElementById('set-password').value;
+            if (!newPwd || newPwd.length < 4) {
+                alert('Password must be at least 4 characters');
+                return;
             }
-            // Filter out zero balances and negative (dust)
-            const holdersList = [];
-            for (let [addr, bal] of holdersMap.entries()) {
-                if (bal.gt(0) && addr !== "0x0000000000000000000000000000000000000000") {
-                    const balanceFormatted = ethers.utils.formatEther(bal);
-                    holdersList.push({ address: addr, balance: balanceFormatted });
-                }
+            const hash = getPasswordHash(newPwd);
+            localStorage.setItem('admin_password_hash', hash);
+            document.getElementById('setup-message').innerHTML = 'Password set successfully! You can now log in.';
+            document.getElementById('setup-message').classList.remove('hidden');
+            setTimeout(() => document.getElementById('setup-message').classList.add('hidden'), 3000);
+            addLog('Admin password changed');
+        };
+
+        // Logout
+        document.getElementById('logout-btn').onclick = () => {
+            sessionStorage.removeItem('admin_logged_in');
+            isLoggedIn = false;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('admin-password').value = '';
+            addLog('Admin logged out');
+        };
+
+        // Check session on load
+        if (sessionStorage.getItem('admin_logged_in') === 'true') {
+            // verify password hash still matches
+            const storedHash = localStorage.getItem('admin_password_hash');
+            if (storedHash) {
+                isLoggedIn = true;
+                document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                loadAllData();
             }
-            holdersList.sort((a,b) => parseFloat(b.balance) - parseFloat(a.balance));
-            allHolders = holdersList.slice(0, 100); // top 100
-            holderCountSpan.innerText = allHolders.length;
-            lastUpdateSpan.innerText = new Date().toLocaleTimeString();
-            // Render holders list
-            let html = `<table style="width:100%"><tr><th>Rank</th><th>Address</th><th>Balance (ECE)</th></tr>`;
-            allHolders.forEach((h, idx) => {
-                html += `<tr><td>${idx+1}</td><td>${h.address.slice(0,8)}...${h.address.slice(-6)}</td><td>${parseFloat(h.balance).toFixed(4)}</td></tr>`;
-            });
-            html += `</table><div class="small-text">Top ${allHolders.length} holders (approximate, based on recent transfers).</div>`;
-            holdersListDiv.innerHTML = html;
-            addLog(`Holder scan complete. Found ${allHolders.length} unique holders with positive balance.`);
-            // Re-render user table to show updated balances
-            renderUsersTable();
-        } catch(err) {
-            holdersListDiv.innerHTML = `<div class="small-text" style="color:#f87171;">Error scanning logs: ${err.message}. Try again or use a smaller block range.</div>`;
-            addLog(`Holder scan error: ${err.message}`);
         }
-    }
-    
-    // ----- Admin Authentication -----
-    function login() {
-        const pwd = adminPasswordInput.value;
-        if (pwd === ADMIN_PASSWORD) {
-            loginOverlay.style.display = "none";
-            dashboard.style.display = "block";
-            addLog("Admin logged in.");
-            loadRegisteredUsers();
-            // Optionally load token contract if previously set
-            const savedAddr = localStorage.getItem("eceAdminContract");
-            if (savedAddr) {
-                eceContractAddrInput.value = savedAddr;
-                fetchTotalSupply();
-            }
-        } else {
-            loginError.innerText = "Wrong password! Access denied.";
-        }
-    }
-    
-    function logout() {
-        loginOverlay.style.display = "flex";
-        dashboard.style.display = "none";
-        adminPasswordInput.value = "";
-        loginError.innerText = "";
-        addLog("Admin logged out.");
-    }
-    
-    // ----- User Management -----
-    addUserBtn.onclick = async () => {
-        const addr = newUserAddr.value.trim();
-        const name = newUserName.value.trim();
-        if (!addr || !ethers.utils.isAddress(addr)) {
-            addLog("Invalid wallet address.", true);
-            return;
-        }
-        const existing = registeredUsers.find(u => u.address.toLowerCase() === addr.toLowerCase());
-        if (existing) {
-            addLog("User already registered.");
-            return;
-        }
-        const newUser = { address: addr, name: name || "—", addedAt: Date.now() };
-        await saveUser(newUser);
-        newUserAddr.value = "";
-        newUserName.value = "";
-        addLog(`Registered user ${addr.slice(0,10)}...`);
-    };
-    
-    exportUsersBtn.onclick = () => {
-        const dataStr = JSON.stringify(registeredUsers, null, 2);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ece_registered_users_${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        addLog("Exported registered users JSON.");
-    };
-    
-    importUsersBtn.onclick = () => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'application/json';
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            const text = await file.text();
+
+        // Data storage structure: we maintain an internal object for registrations and wallets
+        let registrations = [];
+        let wallets = [];
+
+        function loadAllData() {
+            // Load from localStorage (admin's own browser) if any
             try {
-                const imported = JSON.parse(text);
-                if (Array.isArray(imported)) {
-                    const db = await openUsersDB();
-                    const tx = db.transaction("users", "readwrite");
-                    const store = tx.objectStore("users");
-                    for (const user of imported) {
-                        if (user.address && ethers.utils.isAddress(user.address)) {
-                            store.put({ address: user.address, name: user.name || "—", addedAt: user.addedAt || Date.now() });
-                        }
-                    }
-                    await new Promise(resolve => { tx.oncomplete = resolve; });
-                    await loadRegisteredUsers();
-                    addLog(`Imported ${imported.length} users.`);
-                } else throw new Error("Invalid format");
-            } catch(err) {
-                addLog("Import failed: invalid JSON", true);
+                const storedRegs = localStorage.getItem('efikcoin_registrations');
+                if (storedRegs) {
+                    const parsed = JSON.parse(storedRegs);
+                    registrations = mergeUnique(registrations, parsed, 'email');
+                }
+                const storedWallets = localStorage.getItem('ece_wallet');
+                if (storedWallets) {
+                    // only one wallet per browser, but we can treat as an array
+                    try {
+                        const walletData = JSON.parse(storedWallets);
+                        wallets = mergeUnique(wallets, [{ address: walletData.address || 'unknown', privateKey: '[hidden]', encrypted: true, date: new Date().toISOString() }], 'address');
+                    } catch(e) {}
+                }
+                // Also load from admin's own stored data
+                const importedRegs = localStorage.getItem('admin_imported_registrations');
+                if (importedRegs) registrations = mergeUnique(registrations, JSON.parse(importedRegs), 'email');
+                const importedWallets = localStorage.getItem('admin_imported_wallets');
+                if (importedWallets) wallets = mergeUnique(wallets, JSON.parse(importedWallets), 'address');
+            } catch(e) { console.error(e); }
+            refreshUI();
+        }
+
+        function mergeUnique(arr1, arr2, key) {
+            const map = new Map();
+            [...arr1, ...arr2].forEach(item => { if (item[key]) map.set(item[key], item); });
+            return Array.from(map.values());
+        }
+
+        function refreshUI() {
+            // Update stats
+            document.getElementById('stat-registrations').innerText = registrations.length;
+            document.getElementById('stat-wallets').innerText = wallets.length;
+            let totalStaked = 0;
+            wallets.forEach(w => { if (w.staked) totalStaked += parseFloat(w.staked) || 0; });
+            document.getElementById('stat-staked').innerText = totalStaked.toFixed(2);
+            // Render registrations
+            const regContainer = document.getElementById('registrations-list');
+            if (registrations.length === 0) regContainer.innerHTML = '<p class="text-gray-400">No registrations. Import a JSON file or wait for user signups.</p>';
+            else {
+                let html = '<table class="admin-table"><tr><th>Name</th><th>Email</th><th>Feedback</th><th>Date</th></tr>';
+                registrations.forEach(r => {
+                    html += `<tr><td>${escapeHtml(r.name || '')}</td><td>${escapeHtml(r.email)}</td><td>${escapeHtml(r.feedback || '')}</td><td>${r.date || ''}</td></tr>`;
+                });
+                html += '</table>';
+                regContainer.innerHTML = html;
+            }
+            // Render wallets
+            const walletContainer = document.getElementById('wallets-list');
+            if (wallets.length === 0) walletContainer.innerHTML = '<p class="text-gray-400">No wallet data. Import JSON or use the wallet app.</p>';
+            else {
+                let html = '<table class="admin-table"><tr><th>Address</th><th>Staked ECE</th><th>Rewards</th><th>Date</th></tr>';
+                wallets.forEach(w => {
+                    html += `<tr><td class="font-mono text-xs">${w.address || 'unknown'}</td><td>${w.staked || '0'}</td><td>${w.rewards || '0'}</td><td>${w.date || ''}</td></tr>`;
+                });
+                html += '</table>';
+                walletContainer.innerHTML = html;
+            }
+        }
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
+        // Refresh from current browser's localStorage (useful if admin uses same machine as users)
+        document.getElementById('refresh-registrations').onclick = () => {
+            try {
+                const stored = localStorage.getItem('efikcoin_registrations');
+                if (stored) {
+                    const newRegs = JSON.parse(stored);
+                    registrations = mergeUnique(registrations, newRegs, 'email');
+                    localStorage.setItem('admin_imported_registrations', JSON.stringify(registrations));
+                    refreshUI();
+                    addLog('Refreshed registrations from localStorage');
+                } else alert('No registrations found in this browser\'s localStorage.');
+            } catch(e) { alert('Error: '+e.message); }
+        };
+        document.getElementById('refresh-wallets').onclick = () => {
+            try {
+                const stored = localStorage.getItem('ece_wallet');
+                if (stored) {
+                    const walletData = JSON.parse(stored);
+                    const newWallet = { address: walletData.address || 'unknown', privateKey: '[hidden]', staked: localStorage.getItem('staked_ece') || '0', rewards: localStorage.getItem('rewards_ece') || '0', date: new Date().toISOString() };
+                    wallets = mergeUnique(wallets, [newWallet], 'address');
+                    localStorage.setItem('admin_imported_wallets', JSON.stringify(wallets));
+                    refreshUI();
+                    addLog('Refreshed wallet data from localStorage');
+                } else alert('No wallet found.');
+            } catch(e) { alert(e.message); }
+        };
+
+        // Export all data
+        document.getElementById('export-all-btn').onclick = () => {
+            const exportData = { registrations, wallets, exportDate: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `efikcoin_admin_export_${Date.now()}.json`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            addLog('Exported admin data');
+        };
+
+        // Import JSON file
+        document.getElementById('import-btn').onclick = () => {
+            const fileInput = document.getElementById('import-file');
+            if (!fileInput.files.length) { alert('Select a JSON file'); return; }
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data.registrations) registrations = mergeUnique(registrations, data.registrations, 'email');
+                    if (data.wallets) wallets = mergeUnique(wallets, data.wallets, 'address');
+                    localStorage.setItem('admin_imported_registrations', JSON.stringify(registrations));
+                    localStorage.setItem('admin_imported_wallets', JSON.stringify(wallets));
+                    refreshUI();
+                    addLog('Imported data from JSON');
+                    alert('Import successful!');
+                } catch(err) { alert('Invalid JSON: '+err.message); }
+            };
+            reader.readAsText(file);
+        };
+
+        // Change admin password
+        document.getElementById('change-pwd-btn').onclick = () => {
+            const newPwd = document.getElementById('new-admin-pwd').value;
+            if (!newPwd || newPwd.length < 4) { alert('Password must be at least 4 characters'); return; }
+            const hash = getPasswordHash(newPwd);
+            localStorage.setItem('admin_password_hash', hash);
+            addLog('EfikcoinWebsite090699$');
+            alert('Password updated. You will need to log in again.');
+            if (confirm('Logout now?')) document.getElementById('logout-btn').click();
+        };
+
+        // Clear all imported data
+        document.getElementById('clear-data-btn').onclick = () => {
+            if (confirm('⚠️ This will remove all imported registrations and wallets from this admin panel. This action cannot be undone. Continue?')) {
+                registrations = [];
+                wallets = [];
+                localStorage.removeItem('admin_imported_registrations');
+                localStorage.removeItem('admin_imported_wallets');
+                refreshUI();
+                addLog('Cleared all admin data');
+                alert('Data cleared.');
             }
         };
-        input.click();
-    };
-    
-    // ----- Blockchain actions -----
-    fetchHoldersBtn.onclick = async () => {
-        const addr = eceContractAddrInput.value.trim();
-        if (!addr || !ethers.utils.isAddress(addr)) {
-            addLog("Enter a valid ECE token contract address.", true);
-            return;
-        }
-        localStorage.setItem("eceAdminContract", addr);
-        eceContract = new ethers.Contract(addr, ["function totalSupply() view returns (uint256)","function decimals() view returns (uint8)"], provider);
-        await fetchTotalSupply();
-        await fetchHolderCountAndList();
-    };
-    
-    // ----- Auto refresh balances for users every 30s -----
-    setInterval(async () => {
-        if (eceContract && dashboard.style.display === "block") {
-            await renderUsersTable();
-            addLog("Auto-refreshed user balances.");
-        }
-    }, 30000);
-    
-    // ----- Event Listeners -----
-    loginBtn.onclick = login;
-    logoutBtn.onclick = logout;
-    adminPasswordInput.addEventListener("keypress", (e) => { if(e.key === "Enter") login(); });
-    
-    // Initial load: check if already logged in? No, always show login.
-</script>
+
+        // Tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active', 'border-b-2', 'border-cyan-400', 'text-cyan-400'));
+                btn.classList.add('active', 'border-b-2', 'border-cyan-400', 'text-cyan-400');
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(tc => tc.classList.add('hidden'));
+                document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            };
+        });
+
+        // Load logs
+        const logs = localStorage.getItem('admin_logs') || '';
+        if (document.getElementById('system-logs')) document.getElementById('system-logs').innerText = logs;
+        setInterval(() => {
+            if (document.getElementById('system-logs')) document.getElementById('system-logs').innerText = localStorage.getItem('admin_logs') || '';
+        }, 3000);
+    </script>
 </body>
 </html>
