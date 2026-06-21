@@ -3,67 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Efikcoin Ecosystem - Admin Demo Terminal</title>
+    <title>Efikcoin Terminal - Executive Demo</title>
     <style>
+        :root {
+            --bg-main: #0b0f17;
+            --bg-card: #111827;
+            --border-color: #1e293b;
+            --accent-color: #f59e0b;
+            --text-muted: #94a3b8;
+        }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0b0f19;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-main);
             color: #f1f5f9;
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 0 auto;
         }
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #1e293b;
+            border-bottom: 1px solid var(--border-color);
             padding-bottom: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
-        h1 { color: #f59e0b; margin: 0; font-size: 24px; }
+        h1 { color: var(--accent-color); margin: 0; font-size: 26px; font-weight: 700; }
         .badge {
-            background-color: #1e293b;
-            color: #f59e0b;
-            padding: 6px 12px;
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--accent-color);
+            padding: 6px 14px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: bold;
-            border: 1px solid #f59e0b;
+            border: 1px solid var(--accent-color);
         }
+        
+        /* Balance Bar Layout */
+        .balance-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .balance-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        .balance-card .ticker { font-weight: bold; font-size: 14px; color: var(--text-muted); }
+        .balance-card .amount { font-size: 18px; font-weight: bold; margin-top: 5px; color: #fff; }
+
         .grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 20px;
+            grid-template-columns: 1.2fr 1.8fr;
+            gap: 25px;
         }
         @media (max-width: 768px) {
             .grid { grid-template-columns: 1fr; }
         }
         .card {
-            background-color: #111827;
-            border: 1px solid #1e293b;
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 20px;
+            padding: 25px;
+            height: fit-content;
         }
         .card h2 {
             color: #e2e8f0;
             font-size: 18px;
             margin-top: 0;
             margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 10px;
         }
         label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #94a3b8;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-muted);
         }
         input, select {
             width: 100%;
             padding: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 18px;
             border-radius: 8px;
             border: 1px solid #334155;
             background-color: #0f172a;
@@ -73,38 +102,77 @@
         }
         button {
             width: 100%;
-            padding: 12px;
-            background-color: #f59e0b;
-            color: #0b0f19;
+            padding: 14px;
+            background-color: var(--accent-color);
+            color: var(--bg-main);
             border: none;
             border-radius: 8px;
             font-weight: bold;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s;
         }
         button:hover { background-color: #d97706; }
+        button:active { transform: scale(0.98); }
         
-        /* Table Styles */
+        /* Monochrome Realistic Invoice Layout */
+        .invoice-box {
+            background-color: #ffffff;
+            color: #000000;
+            border-radius: 2px;
+            padding: 25px;
+            max-width: 350px;
+            margin: 25px auto 0 auto;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            font-family: 'Courier New', Courier, monospace;
+            display: none;
+            border: 1px solid #ddd;
+        }
+        .invoice-header-num {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+        }
+        .invoice-title {
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        .dashed-divider {
+            border-top: 1px dashed #000000;
+            margin: 12px 0;
+        }
+        .invoice-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 7px 0;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* History Table Panel */
+        .table-container { overflow-x: auto; }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
             font-size: 13px;
         }
         th, td {
             text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #1e293b;
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-color);
         }
-        th { color: #94a3b8; font-weight: 600; }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
         .status-pill {
-            padding: 2px 8px;
+            padding: 3px 10px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: bold;
         }
-        .success { background-color: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .success { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
         .hash-text { color: #38bdf8; font-family: monospace; }
     </style>
 </head>
@@ -113,18 +181,26 @@
 <div class="container">
     <header>
         <div>
-            <h1>Efikcoin Alpha Terminal</h1>
-            <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px;">Administrative Demo & Gateway Simulation Engine</p>
+            <h1>Efikcoin Alpha Engine</h1>
+            <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px;">Multi-Asset Crypto Liquidity & Airtime Settlement Terminal</p>
         </div>
-        <div class="badge">DEMO MODE ACTIVE</div>
+        <div class="badge">SECURE DEMO NETWORK</div>
     </header>
+
+    <div class="balance-row">
+        <div class="balance-card"><div class="ticker">EFC Balance</div><div class="amount" id="bal-EFC">850,240.00</div></div>
+        <div class="balance-card"><div class="ticker">USDT (TRC20)</div><div class="amount" id="bal-USDT">5,420.50</div></div>
+        <div class="balance-card"><div class="ticker">BTC Balance</div><div class="amount" id="bal-BTC">0.34215</div></div>
+        <div class="balance-card"><div class="ticker">BNB Balance</div><div class="amount" id="bal-BNB">14.850</div></div>
+        <div class="balance-card"><div class="ticker">ETH Balance</div><div class="amount" id="bal-ETH">2.1140</div></div>
+    </div>
 
     <div class="grid">
         <div class="card">
-            <h2>Simulate Outbound Dispatch</h2>
+            <h2>Outbound Airtime Dispatch</h2>
             
-            <label for="cryptoSelect">Select Asset Class</label>
-            <select id="cryptoSelect">
+            <label for="cryptoSelect">Pay Protocol Asset</label>
+            <select id="cryptoSelect" onchange="updateCryptoLabel()">
                 <option value="EFC">Efikcoin (EFC)</option>
                 <option value="USDT">Tether (USDT)</option>
                 <option value="BTC">Bitcoin (BTC)</option>
@@ -132,42 +208,57 @@
                 <option value="ETH">Ethereum (ETH)</option>
             </select>
 
-            <label for="destination">Receiver Wallet Address / Destination</label>
-            <input type="text" id="destination" placeholder="0x... or Phone number">
+            <label for="destination">Recipient Mobile Number</label>
+            <input type="text" id="destination" value="+2349136360177" placeholder="+234...">
 
-            <label for="amount">Transaction Volume (Value)</label>
-            <input type="number" id="amount" placeholder="0.00" step="0.00001">
+            <label for="operator">Target Carrier Network</label>
+            <select id="operator">
+                <option value="MTN Nigeria">MTN Nigeria</option>
+                <option value="Airtel Nigeria">Airtel Nigeria</option>
+                <option value="Glo Nigeria">Glo Nigeria</option>
+                <option value="9mobile">9mobile</option>
+            </select>
 
-            <button onclick="triggerDemoTransaction()">Execute Mock Dispatch</button>
-            <p id="alertFeedback" style="text-align: center; font-size: 13px; color: #10b981; margin-top: 15px;"></p>
+            <label id="amountLabel" for="amount">Airtime Value Amount (USD)</label>
+            <input type="number" id="amount" value="0.04" placeholder="0.00" step="0.01">
+
+            <button onclick="executeDemoProcess()">Process Crypto Settlement</button>
+            
+            <div id="invoiceSlip" class="invoice-box">
+                <div id="invPhoneHeader" class="invoice-header-num"></div>
+                <div class="dashed-divider" style="margin: 6px 0;"></div>
+                <div class="invoice-title">Transaction details</div>
+                <div class="dashed-divider"></div>
+                <div class="invoice-row"><span>Transaction:</span><span id="invId" style="font-weight: bold;"></span></div>
+                <div class="invoice-row"><span>Date and time:</span><span id="invDate"></span></div>
+                <div class="invoice-row"><span>Mobile Operator Name:</span><span id="invOperator"></span></div>
+                <div class="invoice-row"><span>Country Code:</span><span>NG</span></div>
+                <div class="invoice-row"><span>Amount:</span><span id="invUsd"></span></div>
+                <div class="invoice-row"><span>Local Delivery Amount:</span><span id="invNgn" style="font-weight: bold;"></span></div>
+                <div class="invoice-row"><span>Phone:</span><span id="invPhoneBody"></span></div>
+                <div class="invoice-row"><span>Carrier fees and taxes:</span><span>0</span></div>
+            </div>
         </div>
 
         <div class="card">
-            <h2>Mock Transaction Ledger Roll</h2>
-            <div style="overflow-x: auto;">
+            <h2>Real-time Core Asset Ledger</h2>
+            <div class="table-container">
                 <table>
                     <thead>
                         <tr>
                             <th>Asset</th>
-                            <th>Recipient Target</th>
-                            <th>Volume</th>
-                            <th>Pseudo-Hash String</th>
+                            <th>Target Destination</th>
+                            <th>Value Pool</th>
+                            <th>Crypto Network Tx Hash</th>
                             <th>Status</th>
                         </tr>
                     </thead>
                     <tbody id="ledgerBody">
                         <tr>
-                            <td><b>EFC</b></td>
-                            <td>0x71C...a39b</td>
-                            <td>2,500.00</td>
-                            <td class="hash-text">0x9f8c...4a2d</td>
-                            <td><span class="status-pill success">Settled</span></td>
-                        </tr>
-                        <tr>
                             <td><b>USDT</b></td>
-                            <td>0x3F1...29ee</td>
-                            <td>150.00</td>
-                            <td class="hash-text">0x31b2...e81a</td>
+                            <td>+2348031234567</td>
+                            <td>$10.00</td>
+                            <td class="hash-text">0x3f8a...92de</td>
                             <td><span class="status-pill success">Settled</span></td>
                         </tr>
                     </tbody>
@@ -178,49 +269,78 @@
 </div>
 
 <script>
-    function triggerDemoTransaction() {
+    // Asset static mock exchange values relative to 1 USD
+    const cryptoRates = {
+        "EFC": 1.00,
+        "USDT": 1.00,
+        "BTC": 0.000015,
+        "BNB": 0.0017,
+        "ETH": 0.00029
+    };
+
+    function updateCryptoLabel() {
+        const selected = document.getElementById('cryptoSelect').value;
+        document.getElementById('amountLabel').innerText = `Airtime Value Amount (USD) - Will deduct in ${selected}`;
+    }
+
+    function executeDemoProcess() {
         const crypto = document.getElementById('cryptoSelect').value;
-        const target = document.getElementById('destination').value || "0xMockDestinationWalletAddress8888";
-        const val = document.getElementById('amount').value || "10.00";
-        const feedback = document.getElementById('alertFeedback');
-        
-        // Generate a random mock crypto transaction hash string
-        const characters = 'abcdef0123456789';
-        let mockHash = '0x';
-        for (let i = 0; i < 8; i++) {
-            mockHash += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        mockHash += '...';
-        for (let i = 0; i < 4; i++) {
-            mockHash += characters.charAt(Math.floor(Math.random() * characters.length));
+        const phoneInput = document.getElementById('destination').value || "+2349136360177";
+        const operatorName = document.getElementById('operator').value;
+        const usdValue = parseFloat(document.getElementById('amount').value || "0.04");
+
+        // Dynamic local market NGN calculation matching layout variables
+        const ngnRate = 1244; 
+        const totalNgn = (usdValue * ngnRate).toFixed(2);
+
+        // Deduct balance from structural cards dynamically to look real
+        const assetBalElement = document.getElementById(`bal-${crypto}`);
+        if(assetBalElement) {
+            let currentBal = parseFloat(assetBalElement.innerText.replace(/,/g, ''));
+            let cryptoCost = usdValue * cryptoRates[crypto];
+            let updatedBal = currentBal - cryptoCost;
+            assetBalElement.innerText = updatedBal.toLocaleString(undefined, {minimumFractionDigits: (crypto === 'EFC' || crypto === 'USDT' ? 2 : 5)});
         }
 
-        // Format target snippet for table representation
-        let shortTarget = target;
-        if(target.startsWith("0x") && target.length > 12) {
-            shortTarget = target.slice(0, 5) + "..." + target.slice(-4);
-        }
-
-        // Target table allocation body
-        const tbody = document.getElementById('ledgerBody');
-        const newRow = document.createElement('tr');
+        // Real-time dynamic date formatting
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
         
-        newRow.innerHTML = `
+        const generatedTxNum = "#" + Math.floor(100000 + Math.random() * 900000);
+
+        // Inject data structure cleanly into Monochrome Slip view
+        document.getElementById('invPhoneHeader').innerText = phoneInput;
+        document.getElementById('invPhoneBody').innerText = phoneInput;
+        document.getElementById('invId').innerText = generatedTxNum;
+        document.getElementById('invDate').innerText = formattedDate;
+        document.getElementById('invOperator').innerText = operatorName;
+        document.getElementById('invUsd').innerText = `$${usdValue.toFixed(2)}`;
+        document.getElementById('invNgn').innerText = `${totalNgn}NGN`;
+
+        // Smooth Display trigger
+        document.getElementById('invoiceSlip').style.display = 'block';
+
+        // Generate matching crypto blockchain transaction block strings
+        const hexChars = '0123456789abcdef';
+        let txHash = '0x';
+        for(let i=0; i<6; i++) txHash += hexChars[Math.floor(Math.random()*16)];
+        txHash += '...';
+        for(let i=0; i<4; i++) txHash += hexChars[Math.floor(Math.random()*16)];
+
+        // Append to running tabular ledger row
+        const ledger = document.getElementById('ledgerBody');
+        const row = document.createElement('tr');
+        row.innerHTML = `
             <td><b>${crypto}</b></td>
-            <td>${shortTarget}</td>
-            <td>${parseFloat(val).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-            <td class="hash-text">${mockHash}</td>
+            <td>${phoneInput}</td>
+            <td>$${usdValue.toFixed(2)}</td>
+            <td class="hash-text">${txHash}</td>
             <td><span class="status-pill success">Settled</span></td>
         `;
-        
-        // Push transaction row to top of visualization log array
-        tbody.insertBefore(newRow, tbody.firstChild);
-
-        // Visual flash success notice for demonstrations
-        feedback.innerText = `Simulated ${crypto} broadcast successful!`;
-        setTimeout(() => { feedback.innerText = ""; }, 4000);
+        ledger.insertBefore(row, ledger.firstChild);
     }
 </script>
 
 </body>
-</html>
+                                                                                </html>
+                                                                                
