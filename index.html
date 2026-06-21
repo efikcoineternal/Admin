@@ -3,25 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Efikcoin Ecosystem - Multi-Crypto Airtime Hub</title>
+    <title>Global Trade Payout - Institutional Ledger</title>
     <style>
         :root {
-            --bg-main: #0b0f17;
-            --bg-card: #111827;
+            --bg-main: #060913;
+            --bg-card: #0f1626;
             --border-color: #1e293b;
             --accent-color: #f59e0b;
-            --text-muted: #94a3b8;
+            --text-muted: #64748b;
             --text-success: #10b981;
         }
         body {
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', Roboto, sans-serif;
             background-color: var(--bg-main);
             color: #f1f5f9;
             margin: 0;
             padding: 20px;
         }
         .container {
-            max-width: 1100px;
+            max-width: 1200px;
             margin: 0 auto;
         }
         header {
@@ -32,84 +32,71 @@
             padding-bottom: 20px;
             margin-bottom: 25px;
         }
-        h1 { color: var(--accent-color); margin: 0; font-size: 24px; font-weight: 700; }
-        .badge {
-            background-color: rgba(245, 158, 11, 0.1);
-            color: var(--accent-color);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            border: 1px solid var(--accent-color);
-        }
+        h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        h1 span { color: var(--accent-color); }
         
-        /* Cryptocurrency Portfolio Bar */
+        /* Premium Asset Grid Layout */
         .crypto-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
             gap: 15px;
             margin-bottom: 30px;
         }
         .crypto-coin-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 8px;
             padding: 16px;
-            position: relative;
-            overflow: hidden;
+            border-top: 3px solid var(--border-color);
         }
-        .crypto-coin-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 4px; height: 100%;
-        }
-        .coin-efc::before { background-color: #3b82f6; }
-        .coin-usdt::before { background-color: #10b981; }
-        .coin-btc::before { background-color: #f59e0b; }
-        .coin-bnb::before { background-color: #eab308; }
-        .coin-eth::before { background-color: #6366f1; }
+        .coin-efc { border-top-color: #3b82f6; }
+        .coin-usdt { border-top-color: #10b981; }
+        .coin-btc { border-top-color: #f59e0b; }
+        .coin-bnb { border-top-color: #eab308; }
+        .coin-eth { border-top-color: #6366f1; }
         
-        .coin-name { font-weight: bold; font-size: 13px; color: var(--text-muted); text-transform: uppercase; }
-        .coin-balance { font-size: 20px; font-weight: 700; margin-top: 6px; color: #ffffff; letter-spacing: -0.5px; }
-        .coin-value-usd { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .coin-name { font-weight: 600; font-size: 12px; color: var(--text-muted); text-transform: uppercase; }
+        .coin-balance { font-size: 22px; font-weight: 700; margin-top: 6px; color: #ffffff; }
 
         .grid-layout {
             display: grid;
-            grid-template-columns: 1.2fr 1.8fr;
+            grid-template-columns: 1.12fr 1.88fr;
             gap: 25px;
         }
-        @media (max-width: 850px) {
+        @media (max-width: 900px) {
             .grid-layout { grid-template-columns: 1fr; }
         }
         .card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 8px;
             padding: 25px;
             height: fit-content;
         }
         .card h2 {
             color: #e2e8f0;
-            font-size: 18px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-top: 0;
             margin-bottom: 20px;
-            border-left: 4px solid var(--accent-color);
-            padding-left: 10px;
+            color: var(--accent-color);
         }
         label {
             display: block;
             margin-bottom: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
         }
         input, select {
             width: 100%;
             padding: 12px;
             margin-bottom: 18px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background-color: #0f172a;
+            border-radius: 6px;
+            border: 1px solid #1e293b;
+            background-color: #060913;
             color: #fff;
             box-sizing: border-box;
             font-size: 14px;
@@ -118,42 +105,36 @@
             width: 100%;
             padding: 14px;
             background-color: var(--accent-color);
-            color: var(--bg-main);
+            color: #000;
             border: none;
-            border-radius: 8px;
+            border-radius: 6px;
             font-weight: bold;
-            font-size: 16px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             cursor: pointer;
-            transition: background 0.2s, transform 0.1s;
+            transition: background 0.2s;
         }
         button:hover { background-color: #d97706; }
-        button:active { transform: scale(0.98); }
         
-        /* Monochrome Realistic Statement Invoice Output */
+        /* High-Trust Financial Statement Invoice */
         .invoice-box {
             background-color: #ffffff;
             color: #000000;
-            border-radius: 2px;
+            border-radius: 4px;
             padding: 25px;
-            max-width: 350px;
+            max-width: 360px;
             margin: 25px auto 0 auto;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
             font-family: 'Courier New', Courier, monospace;
             display: none;
-            border: 1px solid #ddd;
         }
-        .invoice-header-num {
+        .invoice-header-title {
             text-align: center;
             font-weight: bold;
-            font-size: 18px;
-            margin-bottom: 4px;
+            font-size: 16px;
             letter-spacing: 0.5px;
-        }
-        .invoice-title {
-            text-align: center;
-            font-size: 14px;
-            font-weight: bold;
-            margin-bottom: 2px;
+            text-transform: uppercase;
         }
         .dashed-divider {
             border-top: 1px dashed #000000;
@@ -164,10 +145,9 @@
             justify-content: space-between;
             margin: 7px 0;
             font-size: 13px;
-            line-height: 1.4;
         }
 
-        /* Live Table Ledger Styles */
+        /* Settlement Ledger */
         .table-container { overflow-x: auto; }
         table {
             width: 100%;
@@ -179,22 +159,15 @@
             padding: 14px 12px;
             border-bottom: 1px solid var(--border-color);
         }
-        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+        th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 11px; }
         .status-pill {
             padding: 3px 10px;
-            border-radius: 12px;
+            border-radius: 4px;
             font-size: 11px;
             font-weight: bold;
         }
         .success { background-color: rgba(16, 185, 129, 0.15); color: var(--text-success); }
         .hash-text { color: #38bdf8; font-family: monospace; }
-        .token-badge {
-            background-color: #1e293b;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -202,106 +175,76 @@
 <div class="container">
     <header>
         <div>
-            <h1>Efikcoin Airtime Hub</h1>
-            <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px;">Instant Cryptocurrency Utilities Conversion Gateway</p>
+            <h1>Global Trade <span>Payout</span></h1>
+            <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 13px;">Institutional Multi-Asset Settlement System</p>
         </div>
-        <div class="badge">SECURE SIMULATOR LAYER</div>
+        <div style="font-size: 12px; font-weight: bold; color: var(--text-success);">● NETWORKS ONLINE</div>
     </header>
 
     <div class="crypto-bar">
-        <div class="crypto-coin-card coin-efc">
-            <div class="coin-name">Efikcoin (EFC)</div>
-            <div class="coin-balance" id="bal-EFC">500,000.00</div>
-            <div class="coin-value-usd" id="val-EFC-usd">$500,000.00</div>
-        </div>
-        <div class="crypto-coin-card coin-usdt">
-            <div class="coin-name">Tether (USDT)</div>
-            <div class="coin-balance" id="bal-USDT">12,450.00</div>
-            <div class="coin-value-usd" id="val-USDT-usd">$12,450.00</div>
-        </div>
-        <div class="crypto-coin-card coin-btc">
-            <div class="coin-name">Bitcoin (BTC)</div>
-            <div class="coin-balance" id="bal-BTC">1.45820</div>
-            <div class="coin-value-usd" id="val-BTC-usd">$94,783.00</div>
-        </div>
-        <div class="crypto-coin-card coin-bnb">
-            <div class="coin-name">BNB Chain (BNB)</div>
-            <div class="crypto-balance coin-balance" id="bal-BNB">42.150</div>
-            <div class="coin-value-usd" id="val-BNB-usd">$24,447.00</div>
-        </div>
-        <div class="crypto-coin-card coin-eth">
-            <div class="coin-name">Ethereum (ETH)</div>
-            <div class="coin-balance" id="bal-ETH">5.8240</div>
-            <div class="coin-value-usd" id="val-ETH-usd">$19,219.20</div>
-        </div>
+        <div class="crypto-coin-card coin-efc"><div class="coin-name">Efikcoin (EFC)</div><div class="coin-balance" id="bal-EFC">750,000.00</div></div>
+        <div class="crypto-coin-card coin-usdt"><div class="coin-name">Tether (USDT)</div><div class="coin-balance" id="bal-USDT">25,600.00</div></div>
+        <div class="crypto-coin-card coin-btc"><div class="coin-name">Bitcoin (BTC)</div><div class="coin-balance" id="bal-BTC">3.84120</div></div>
+        <div class="crypto-coin-card coin-bnb"><div class="coin-name">Binance (BNB)</div><div class="coin-balance" id="bal-BNB">184.50</div></div>
+        <div class="crypto-coin-card coin-eth"><div class="coin-name">Ethereum (ETH)</div><div class="coin-balance" id="bal-ETH">12.640</div></div>
     </div>
 
     <div class="grid-layout">
         <div class="card">
-            <h2>Process Utility Top-Up</h2>
+            <h2>Admin Execution Terminal</h2>
             
-            <label for="cryptoSelect">Payment Cryptocurrency Asset</label>
-            <select id="cryptoSelect" onchange="updateAssetLabels()">
+            <label for="cryptoSelect">Asset Class</label>
+            <select id="cryptoSelect">
                 <option value="EFC">Efikcoin (EFC)</option>
                 <option value="USDT">Tether (USDT)</option>
                 <option value="BTC">Bitcoin (BTC)</option>
-                <option value="BNB">BNB Smart Chain (BNB)</option>
+                <option value="BNB">Binance (BNB)</option>
                 <option value="ETH">Ethereum (ETH)</option>
             </select>
 
-            <label for="destination">Recipient Mobile Number</label>
-            <input type="text" id="destination" value="+2349136360177" placeholder="+234...">
+            <label for="destination">Recipient Wallet Address</label>
+            <input type="text" id="destination" value="0x71C7656EC7ab88b098defB751B7401B5f6d8976F" placeholder="0x...">
 
-            <label for="operator">Target Telecommunication Carrier</label>
-            <select id="operator">
-                <option value="MTN Nigeria">MTN Nigeria</option>
-                <option value="Airtel Nigeria">Airtel Nigeria</option>
-                <option value="Glo Nigeria">Glo Nigeria</option>
-                <option value="9mobile">9mobile</option>
-            </select>
+            <label for="amount">Payout Value (USD)</label>
+            <input type="number" id="amount" value="500.00" placeholder="0.00" step="0.01">
 
-            <label id="amountLabel" for="amount">Airtime Amount (USD Value)</label>
-            <input type="number" id="amount" value="0.04" placeholder="0.00" step="0.01">
-
-            <button onclick="processCryptoTopupDemo()">Authorize Crypto Remittance</button>
+            <button onclick="executeGlobalTradePayout()">Execute Secure Payout</button>
             
             <div id="invoiceSlip" class="invoice-box">
-                <div id="invPhoneHeader" class="invoice-header-num"></div>
-                <div class="dashed-divider" style="margin: 6px 0;"></div>
-                <div class="invoice-title">Transaction details</div>
+                <div class="invoice-header-title">Global Trade Payout</div>
+                <div class="invoice-header-title" style="font-size: 12px; margin-top:4px; color:#555;">Official Transaction Statement</div>
                 <div class="dashed-divider"></div>
-                <div class="invoice-row"><span>Transaction:</span><span id="invId" style="font-weight: bold;"></span></div>
-                <div class="invoice-row"><span>Date and time:</span><span id="invDate"></span></div>
-                <div class="invoice-row"><span>Mobile Operator Name:</span><span id="invOperator"></span></div>
-                <div class="invoice-row"><span>Country Code:</span><span>NG</span></div>
-                <div class="invoice-row"><span>Amount:</span><span id="invUsd"></span></div>
-                <div class="invoice-row"><span>Local Delivery Amount:</span><span id="invNgn" style="font-weight: bold;"></span></div>
-                <div class="invoice-row"><span>Phone:</span><span id="invPhoneBody"></span></div>
-                <div class="invoice-row"><span>Carrier fees and taxes:</span><span>0</span></div>
+                <div class="invoice-row"><span>Transaction ID:</span><span id="invId" style="font-weight: bold;"></span></div>
+                <div class="invoice-row"><span>Timestamp:</span><span id="invDate"></span></div>
+                <div class="invoice-row"><span>Settlement Asset:</span><span id="invAsset"></span></div>
+                <div class="invoice-row"><span>Status:</span><span style="font-weight: bold; color: green;">SETTLED / COMPLETED</span></div>
+                <div class="dashed-divider"></div>
+                <div class="invoice-row"><span>Payout Value:</span><span id="invUsd" style="font-weight: bold;"></span></div>
+                <div class="invoice-row"><span>Destination Node:</span><span id="invWallet"></span></div>
+                <div class="dashed-divider"></div>
+                <div style="font-size: 10px; text-align: center; color: #555;">Cryptographic proof generated on ledger block.</div>
             </div>
         </div>
 
         <div class="card">
-            <h2>Live Cryptocurrency Ledger Activity</h2>
+            <h2>Real-Time Settlement Ledger</h2>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Crypto Asset</th>
-                            <th>Amount Charged</th>
-                            <th>Destination Phone</th>
-                            <th>Local Value Funded</th>
-                            <th>Blockchain Tx Hash</th>
-                            <th>Network Status</th>
+                            <th>Asset Class</th>
+                            <th>Total Volume</th>
+                            <th>Recipient Node</th>
+                            <th>Cryptographic Tx Hash</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
                     <tbody id="ledgerBody">
                         <tr>
-                            <td><span class="token-badge" style="color:#10b981;">USDT</span></td>
-                            <td>0.04 USDT</td>
-                            <td>+2349136360177</td>
-                            <td style="color:var(--text-success); font-weight:bold;">49.76 NGN</td>
-                            <td class="hash-text">0x7f2a...c0de</td>
+                            <td><b>USDT</b></td>
+                            <td>1,200.00 USDT</td>
+                            <td>0x3f8a...92de</td>
+                            <td class="hash-text">0x8aef31c...90b2</td>
                             <td><span class="status-pill success">Settled</span></td>
                         </tr>
                     </tbody>
@@ -312,93 +255,60 @@
 </div>
 
 <script>
-    // Live reference conversion metrics relative to USD rates
-    const tokenPriceIndex = {
-        "EFC": 1.00,
-        "USDT": 1.00,
-        "BTC": 65000.00,
-        "BNB": 580.00,
-        "ETH": 3300.00
-    };
+    // Rates relative to 1 USD
+    const assetPriceIndex = { "EFC": 1, "USDT": 1, "BTC": 65000, "BNB": 580, "ETH": 3300 };
 
-    function updateAssetLabels() {
-        const coin = document.getElementById('cryptoSelect').value;
-        document.getElementById('amountLabel').innerText = `Airtime Amount (USD Value) - Settling via ${coin}`;
-    }
-
-    function processCryptoTopupDemo() {
+    function executeGlobalTradePayout() {
         const asset = document.getElementById('cryptoSelect').value;
-        const phone = document.getElementById('destination').value || "+2349136360177";
-        const operator = document.getElementById('operator').value;
-        const usdVal = parseFloat(document.getElementById('amount').value || "0.04");
+        const walletAddress = document.getElementById('destination').value || "0x71C7656EC7ab88b098defB751B7401B5f6d8976F";
+        const usdValue = parseFloat(document.getElementById('amount').value || "500");
 
-        // Base local currency execution calculation ($1 = ~1244 NGN)
-        const exchangeConversionFactor = 1244;
-        const localizedNairaTotal = (usdVal * exchangeConversionFactor).toFixed(2);
+        const tokensToDeduct = usdValue / assetPriceIndex[asset];
 
-        // Calculate dynamic crypto token conversion cost matrix
-        const tokensToDeduct = usdVal / tokenPriceIndex[asset];
-
-        // 1. Instantly subtract values dynamically inside visual coins portfolio boxes
+        // 1. Dynamic admin balance pool deduction
         const balanceField = document.getElementById(`bal-${asset}`);
-        const usdValueField = document.getElementById(`val-${asset}-usd`);
-        
         if (balanceField) {
-            let existingBalance = parseFloat(balanceField.innerText.replace(/,/g, ''));
-            let newBalance = existingBalance - tokensToDeduct;
-            
-            // Format fractional outputs to match native blockchain visibility states
-            const accuracyPrecision = (asset === 'EFC' || asset === 'USDT') ? 2 : 5;
-            balanceField.innerText = newBalance.toLocaleString(undefined, {minimumFractionDigits: accuracyPrecision, maximumFractionDigits: accuracyPrecision});
-            
-            // Adjust current aggregate market valuations accordingly
-            if (asset !== 'EFC' && asset !== 'USDT') {
-                let updatedMarketVal = newBalance * tokenPriceIndex[asset];
-                usdValueField.innerText = `$${updatedMarketVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            } else {
-                usdValueField.innerText = `$${newBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
-            }
+            let currentBal = parseFloat(balanceField.innerText.replace(/,/g, ''));
+            let newBal = currentBal - tokensToDeduct;
+            const precision = (asset === 'EFC' || asset === 'USDT') ? 2 : 5;
+            balanceField.innerText = newBal.toLocaleString(undefined, {minimumFractionDigits: precision, maximumFractionDigits: precision});
         }
 
-        // 2. Generate and output standard high-fidelity statement details variables
-        const currentTimestamp = new Date();
-        const formattedDateStamp = `${currentTimestamp.getFullYear()}-${String(currentTimestamp.getMonth() + 1).padStart(2, '0')}-${String(currentTimestamp.getDate()).padStart(2, '0')} ${String(currentTimestamp.getHours()).padStart(2, '0')}:${String(currentTimestamp.getMinutes()).padStart(2, '0')}:${String(currentTimestamp.getSeconds()).padStart(2, '0')}`;
-        const generatedTransactionNumber = "#" + Math.floor(100000 + Math.random() * 900000);
+        // 2. Generate Statement Data
+        const now = new Date();
+        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+        const randomTxNum = "GTP-" + Math.floor(100000 + Math.random() * 900000);
+        const shortWallet = walletAddress.slice(0, 8) + "..." + walletAddress.slice(-6);
 
-        // Push values into monochrome preview window structure
-        document.getElementById('invPhoneHeader').innerText = phone;
-        document.getElementById('invPhoneBody').innerText = phone;
-        document.getElementById('invId').innerText = generatedTransactionNumber;
-        document.getElementById('invDate').innerText = formattedDateStamp;
-        document.getElementById('invOperator').innerText = operator;
-        document.getElementById('invUsd').innerText = `$${usdVal.toFixed(2)}`;
-        document.getElementById('invNgn').innerText = `${localizedNairaTotal}NGN`;
+        // Populate Statement
+        document.getElementById('invId').innerText = randomTxNum;
+        document.getElementById('invDate').innerText = formattedDate;
+        document.getElementById('invAsset').innerText = asset;
+        document.getElementById('invUsd').innerText = `$${usdValue.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        document.getElementById('invWallet').innerText = shortWallet;
 
-        // Reveal the structured view
+        // Show Statement Slip
         document.getElementById('invoiceSlip').style.display = 'block';
 
-        // 3. Append detailed block tracking sequence numbers to dynamic tabular entries array
-        const hexadecimalMatrix = '0123456789abcdef';
-        let dynamicTxHash = '0x';
-        for(let i=0; i<6; i++) dynamicTxHash += hexadecimalMatrix[Math.floor(Math.random()*16)];
-        dynamicTxHash += '...';
-        for(let i=0; i<4; i++) dynamicTxHash += hexadecimalMatrix[Math.floor(Math.random()*16)];
+        // 3. Append to running master ledger history row
+        const hexChars = '0123456789abcdef';
+        let txHash = '0x';
+        for(let i=0; i<12; i++) txHash += hexChars[Math.floor(Math.random()*16)];
+        txHash += '...';
+        for(let i=0; i<4; i++) txHash += hexChars[Math.floor(Math.random()*16)];
 
-        const ledgerElement = document.getElementById('ledgerBody');
-        const standardRow = document.createElement('tr');
-        
-        // Render precise fractional notations dynamically per targeted cryptocurrency profile
-        const standardDisplayAmount = (asset === 'EFC' || asset === 'USDT') ? tokensToDeduct.toFixed(2) : tokensToDeduct.toFixed(6);
+        const ledger = document.getElementById('ledgerBody');
+        const row = document.createElement('tr');
+        const displayTokens = (asset === 'EFC' || asset === 'USDT') ? tokensToDeduct.toFixed(2) : tokensToDeduct.toFixed(5);
 
-        standardRow.innerHTML = `
-            <td><span class="token-badge">${asset}</span></td>
-            <td>${standardDisplayAmount} ${asset}</td>
-            <td>${phone}</td>
-            <td style="color:var(--text-success); font-weight:bold;">${localizedNairaTotal} NGN</td>
-            <td class="hash-text">${dynamicTxHash}</td>
+        row.innerHTML = `
+            <td><b>${asset}</b></td>
+            <td>${parseFloat(displayTokens).toLocaleString()} ${asset}</td>
+            <td>${shortWallet}</td>
+            <td class="hash-text">${txHash}</td>
             <td><span class="status-pill success">Settled</span></td>
         `;
-        ledgerElement.insertBefore(standardRow, ledgerElement.firstChild);
+        ledger.insertBefore(row, ledger.firstChild);
     }
 </script>
 
