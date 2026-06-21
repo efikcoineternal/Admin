@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Efikcoin Ecosystem - Admin Demo Terminal</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0b0f19;
+            color: #f1f5f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1e293b;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        h1 { color: #f59e0b; margin: 0; font-size: 24px; }
+        .badge {
+            background-color: #1e293b;
+            color: #f59e0b;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            border: 1px solid #f59e0b;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background-color: #111827;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        .card h2 {
+            color: #e2e8f0;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background-color: #0f172a;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #f59e0b;
+            color: #0b0f19;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background-color: #d97706; }
+        
+        /* Table Styles */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #1e293b;
+        }
+        th { color: #94a3b8; font-weight: 600; }
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .success { background-color: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .hash-text { color: #38bdf8; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>Efikcoin Alpha Terminal</h1>
+            <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px;">Administrative Demo & Gateway Simulation Engine</p>
+        </div>
+        <div class="badge">DEMO MODE ACTIVE</div>
+    </header>
+
+    <div class="grid">
+        <div class="card">
+            <h2>Simulate Outbound Dispatch</h2>
+            
+            <label for="cryptoSelect">Select Asset Class</label>
+            <select id="cryptoSelect">
+                <option value="EFC">Efikcoin (EFC)</option>
+                <option value="USDT">Tether (USDT)</option>
+                <option value="BTC">Bitcoin (BTC)</option>
+                <option value="BNB">BNB Smart Chain (BNB)</option>
+                <option value="ETH">Ethereum (ETH)</option>
+            </select>
+
+            <label for="destination">Receiver Wallet Address / Destination</label>
+            <input type="text" id="destination" placeholder="0x... or Phone number">
+
+            <label for="amount">Transaction Volume (Value)</label>
+            <input type="number" id="amount" placeholder="0.00" step="0.00001">
+
+            <button onclick="triggerDemoTransaction()">Execute Mock Dispatch</button>
+            <p id="alertFeedback" style="text-align: center; font-size: 13px; color: #10b981; margin-top: 15px;"></p>
+        </div>
+
+        <div class="card">
+            <h2>Mock Transaction Ledger Roll</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Recipient Target</th>
+                            <th>Volume</th>
+                            <th>Pseudo-Hash String</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ledgerBody">
+                        <tr>
+                            <td><b>EFC</b></td>
+                            <td>0x71C...a39b</td>
+                            <td>2,500.00</td>
+                            <td class="hash-text">0x9f8c...4a2d</td>
+                            <td><span class="status-pill success">Settled</span></td>
+                        </tr>
+                        <tr>
+                            <td><b>USDT</b></td>
+                            <td>0x3F1...29ee</td>
+                            <td>150.00</td>
+                            <td class="hash-text">0x31b2...e81a</td>
+                            <td><span class="status-pill success">Settled</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function triggerDemoTransaction() {
+        const crypto = document.getElementById('cryptoSelect').value;
+        const target = document.getElementById('destination').value || "0xMockDestinationWalletAddress8888";
+        const val = document.getElementById('amount').value || "10.00";
+        const feedback = document.getElementById('alertFeedback');
+        
+        // Generate a random mock crypto transaction hash string
+        const characters = 'abcdef0123456789';
+        let mockHash = '0x';
+        for (let i = 0; i < 8; i++) {
+            mockHash += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+        mockHash += '...';
+        for (let i = 0; i < 4; i++) {
+            mockHash += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+
+        // Format target snippet for table representation
+        let shortTarget = target;
+        if(target.startsWith("0x") && target.length > 12) {
+            shortTarget = target.slice(0, 5) + "..." + target.slice(-4);
+        }
+
+        // Target table allocation body
+        const tbody = document.getElementById('ledgerBody');
+        const newRow = document.createElement('tr');
+        
+        newRow.innerHTML = `
+            <td><b>${crypto}</b></td>
+            <td>${shortTarget}</td>
+            <td>${parseFloat(val).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="hash-text">${mockHash}</td>
+            <td><span class="status-pill success">Settled</span></td>
+        `;
+        
+        // Push transaction row to top of visualization log array
+        tbody.insertBefore(newRow, tbody.firstChild);
+
+        // Visual flash success notice for demonstrations
+        feedback.innerText = `Simulated ${crypto} broadcast successful!`;
+        setTimeout(() => { feedback.innerText = ""; }, 4000);
+    }
+</script>
+
+</body>
+</html>
