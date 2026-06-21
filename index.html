@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Efikcoin Terminal - Executive Demo</title>
+    <title>Efikcoin Ecosystem - Multi-Crypto Airtime Hub</title>
     <style>
         :root {
             --bg-main: #0b0f17;
@@ -11,6 +11,7 @@
             --border-color: #1e293b;
             --accent-color: #f59e0b;
             --text-muted: #94a3b8;
+            --text-success: #10b981;
         }
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -31,7 +32,7 @@
             padding-bottom: 20px;
             margin-bottom: 25px;
         }
-        h1 { color: var(--accent-color); margin: 0; font-size: 26px; font-weight: 700; }
+        h1 { color: var(--accent-color); margin: 0; font-size: 24px; font-weight: 700; }
         .badge {
             background-color: rgba(245, 158, 11, 0.1);
             color: var(--accent-color);
@@ -42,35 +43,48 @@
             border: 1px solid var(--accent-color);
         }
         
-        /* Balance Bar Layout */
-        .balance-row {
+        /* Cryptocurrency Portfolio Bar */
+        .crypto-bar {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 15px;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
         }
-        .balance-card {
+        .crypto-coin-card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 15px;
-            text-align: center;
+            border-radius: 12px;
+            padding: 16px;
+            position: relative;
+            overflow: hidden;
         }
-        .balance-card .ticker { font-weight: bold; font-size: 14px; color: var(--text-muted); }
-        .balance-card .amount { font-size: 18px; font-weight: bold; margin-top: 5px; color: #fff; }
+        .crypto-coin-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+        }
+        .coin-efc::before { background-color: #3b82f6; }
+        .coin-usdt::before { background-color: #10b981; }
+        .coin-btc::before { background-color: #f59e0b; }
+        .coin-bnb::before { background-color: #eab308; }
+        .coin-eth::before { background-color: #6366f1; }
+        
+        .coin-name { font-weight: bold; font-size: 13px; color: var(--text-muted); text-transform: uppercase; }
+        .coin-balance { font-size: 20px; font-weight: 700; margin-top: 6px; color: #ffffff; letter-spacing: -0.5px; }
+        .coin-value-usd { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
 
-        .grid {
+        .grid-layout {
             display: grid;
             grid-template-columns: 1.2fr 1.8fr;
             gap: 25px;
         }
-        @media (max-width: 768px) {
-            .grid { grid-template-columns: 1fr; }
+        @media (max-width: 850px) {
+            .grid-layout { grid-template-columns: 1fr; }
         }
         .card {
             background-color: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
+            border-radius: 14px;
             padding: 25px;
             height: fit-content;
         }
@@ -115,7 +129,7 @@
         button:hover { background-color: #d97706; }
         button:active { transform: scale(0.98); }
         
-        /* Monochrome Realistic Invoice Layout */
+        /* Monochrome Realistic Statement Invoice Output */
         .invoice-box {
             background-color: #ffffff;
             color: #000000;
@@ -153,7 +167,7 @@
             line-height: 1.4;
         }
 
-        /* History Table Panel */
+        /* Live Table Ledger Styles */
         .table-container { overflow-x: auto; }
         table {
             width: 100%;
@@ -172,8 +186,15 @@
             font-size: 11px;
             font-weight: bold;
         }
-        .success { background-color: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .success { background-color: rgba(16, 185, 129, 0.15); color: var(--text-success); }
         .hash-text { color: #38bdf8; font-family: monospace; }
+        .token-badge {
+            background-color: #1e293b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -181,26 +202,46 @@
 <div class="container">
     <header>
         <div>
-            <h1>Efikcoin Alpha Engine</h1>
-            <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px;">Multi-Asset Crypto Liquidity & Airtime Settlement Terminal</p>
+            <h1>Efikcoin Airtime Hub</h1>
+            <p style="color: var(--text-muted); margin: 5px 0 0 0; font-size: 14px;">Instant Cryptocurrency Utilities Conversion Gateway</p>
         </div>
-        <div class="badge">SECURE DEMO NETWORK</div>
+        <div class="badge">SECURE SIMULATOR LAYER</div>
     </header>
 
-    <div class="balance-row">
-        <div class="balance-card"><div class="ticker">EFC Balance</div><div class="amount" id="bal-EFC">850,240.00</div></div>
-        <div class="balance-card"><div class="ticker">USDT (TRC20)</div><div class="amount" id="bal-USDT">5,420.50</div></div>
-        <div class="balance-card"><div class="ticker">BTC Balance</div><div class="amount" id="bal-BTC">0.34215</div></div>
-        <div class="balance-card"><div class="ticker">BNB Balance</div><div class="amount" id="bal-BNB">14.850</div></div>
-        <div class="balance-card"><div class="ticker">ETH Balance</div><div class="amount" id="bal-ETH">2.1140</div></div>
+    <div class="crypto-bar">
+        <div class="crypto-coin-card coin-efc">
+            <div class="coin-name">Efikcoin (EFC)</div>
+            <div class="coin-balance" id="bal-EFC">500,000.00</div>
+            <div class="coin-value-usd" id="val-EFC-usd">$500,000.00</div>
+        </div>
+        <div class="crypto-coin-card coin-usdt">
+            <div class="coin-name">Tether (USDT)</div>
+            <div class="coin-balance" id="bal-USDT">12,450.00</div>
+            <div class="coin-value-usd" id="val-USDT-usd">$12,450.00</div>
+        </div>
+        <div class="crypto-coin-card coin-btc">
+            <div class="coin-name">Bitcoin (BTC)</div>
+            <div class="coin-balance" id="bal-BTC">1.45820</div>
+            <div class="coin-value-usd" id="val-BTC-usd">$94,783.00</div>
+        </div>
+        <div class="crypto-coin-card coin-bnb">
+            <div class="coin-name">BNB Chain (BNB)</div>
+            <div class="crypto-balance coin-balance" id="bal-BNB">42.150</div>
+            <div class="coin-value-usd" id="val-BNB-usd">$24,447.00</div>
+        </div>
+        <div class="crypto-coin-card coin-eth">
+            <div class="coin-name">Ethereum (ETH)</div>
+            <div class="coin-balance" id="bal-ETH">5.8240</div>
+            <div class="coin-value-usd" id="val-ETH-usd">$19,219.20</div>
+        </div>
     </div>
 
-    <div class="grid">
+    <div class="grid-layout">
         <div class="card">
-            <h2>Outbound Airtime Dispatch</h2>
+            <h2>Process Utility Top-Up</h2>
             
-            <label for="cryptoSelect">Pay Protocol Asset</label>
-            <select id="cryptoSelect" onchange="updateCryptoLabel()">
+            <label for="cryptoSelect">Payment Cryptocurrency Asset</label>
+            <select id="cryptoSelect" onchange="updateAssetLabels()">
                 <option value="EFC">Efikcoin (EFC)</option>
                 <option value="USDT">Tether (USDT)</option>
                 <option value="BTC">Bitcoin (BTC)</option>
@@ -211,7 +252,7 @@
             <label for="destination">Recipient Mobile Number</label>
             <input type="text" id="destination" value="+2349136360177" placeholder="+234...">
 
-            <label for="operator">Target Carrier Network</label>
+            <label for="operator">Target Telecommunication Carrier</label>
             <select id="operator">
                 <option value="MTN Nigeria">MTN Nigeria</option>
                 <option value="Airtel Nigeria">Airtel Nigeria</option>
@@ -219,10 +260,10 @@
                 <option value="9mobile">9mobile</option>
             </select>
 
-            <label id="amountLabel" for="amount">Airtime Value Amount (USD)</label>
+            <label id="amountLabel" for="amount">Airtime Amount (USD Value)</label>
             <input type="number" id="amount" value="0.04" placeholder="0.00" step="0.01">
 
-            <button onclick="executeDemoProcess()">Process Crypto Settlement</button>
+            <button onclick="processCryptoTopupDemo()">Authorize Crypto Remittance</button>
             
             <div id="invoiceSlip" class="invoice-box">
                 <div id="invPhoneHeader" class="invoice-header-num"></div>
@@ -241,24 +282,26 @@
         </div>
 
         <div class="card">
-            <h2>Real-time Core Asset Ledger</h2>
+            <h2>Live Cryptocurrency Ledger Activity</h2>
             <div class="table-container">
                 <table>
                     <thead>
                         <tr>
-                            <th>Asset</th>
-                            <th>Target Destination</th>
-                            <th>Value Pool</th>
-                            <th>Crypto Network Tx Hash</th>
-                            <th>Status</th>
+                            <th>Crypto Asset</th>
+                            <th>Amount Charged</th>
+                            <th>Destination Phone</th>
+                            <th>Local Value Funded</th>
+                            <th>Blockchain Tx Hash</th>
+                            <th>Network Status</th>
                         </tr>
                     </thead>
                     <tbody id="ledgerBody">
                         <tr>
-                            <td><b>USDT</b></td>
-                            <td>+2348031234567</td>
-                            <td>$10.00</td>
-                            <td class="hash-text">0x3f8a...92de</td>
+                            <td><span class="token-badge" style="color:#10b981;">USDT</span></td>
+                            <td>0.04 USDT</td>
+                            <td>+2349136360177</td>
+                            <td style="color:var(--text-success); font-weight:bold;">49.76 NGN</td>
+                            <td class="hash-text">0x7f2a...c0de</td>
                             <td><span class="status-pill success">Settled</span></td>
                         </tr>
                     </tbody>
@@ -269,78 +312,95 @@
 </div>
 
 <script>
-    // Asset static mock exchange values relative to 1 USD
-    const cryptoRates = {
+    // Live reference conversion metrics relative to USD rates
+    const tokenPriceIndex = {
         "EFC": 1.00,
         "USDT": 1.00,
-        "BTC": 0.000015,
-        "BNB": 0.0017,
-        "ETH": 0.00029
+        "BTC": 65000.00,
+        "BNB": 580.00,
+        "ETH": 3300.00
     };
 
-    function updateCryptoLabel() {
-        const selected = document.getElementById('cryptoSelect').value;
-        document.getElementById('amountLabel').innerText = `Airtime Value Amount (USD) - Will deduct in ${selected}`;
+    function updateAssetLabels() {
+        const coin = document.getElementById('cryptoSelect').value;
+        document.getElementById('amountLabel').innerText = `Airtime Amount (USD Value) - Settling via ${coin}`;
     }
 
-    function executeDemoProcess() {
-        const crypto = document.getElementById('cryptoSelect').value;
-        const phoneInput = document.getElementById('destination').value || "+2349136360177";
-        const operatorName = document.getElementById('operator').value;
-        const usdValue = parseFloat(document.getElementById('amount').value || "0.04");
+    function processCryptoTopupDemo() {
+        const asset = document.getElementById('cryptoSelect').value;
+        const phone = document.getElementById('destination').value || "+2349136360177";
+        const operator = document.getElementById('operator').value;
+        const usdVal = parseFloat(document.getElementById('amount').value || "0.04");
 
-        // Dynamic local market NGN calculation matching layout variables
-        const ngnRate = 1244; 
-        const totalNgn = (usdValue * ngnRate).toFixed(2);
+        // Base local currency execution calculation ($1 = ~1244 NGN)
+        const exchangeConversionFactor = 1244;
+        const localizedNairaTotal = (usdVal * exchangeConversionFactor).toFixed(2);
 
-        // Deduct balance from structural cards dynamically to look real
-        const assetBalElement = document.getElementById(`bal-${crypto}`);
-        if(assetBalElement) {
-            let currentBal = parseFloat(assetBalElement.innerText.replace(/,/g, ''));
-            let cryptoCost = usdValue * cryptoRates[crypto];
-            let updatedBal = currentBal - cryptoCost;
-            assetBalElement.innerText = updatedBal.toLocaleString(undefined, {minimumFractionDigits: (crypto === 'EFC' || crypto === 'USDT' ? 2 : 5)});
+        // Calculate dynamic crypto token conversion cost matrix
+        const tokensToDeduct = usdVal / tokenPriceIndex[asset];
+
+        // 1. Instantly subtract values dynamically inside visual coins portfolio boxes
+        const balanceField = document.getElementById(`bal-${asset}`);
+        const usdValueField = document.getElementById(`val-${asset}-usd`);
+        
+        if (balanceField) {
+            let existingBalance = parseFloat(balanceField.innerText.replace(/,/g, ''));
+            let newBalance = existingBalance - tokensToDeduct;
+            
+            // Format fractional outputs to match native blockchain visibility states
+            const accuracyPrecision = (asset === 'EFC' || asset === 'USDT') ? 2 : 5;
+            balanceField.innerText = newBalance.toLocaleString(undefined, {minimumFractionDigits: accuracyPrecision, maximumFractionDigits: accuracyPrecision});
+            
+            // Adjust current aggregate market valuations accordingly
+            if (asset !== 'EFC' && asset !== 'USDT') {
+                let updatedMarketVal = newBalance * tokenPriceIndex[asset];
+                usdValueField.innerText = `$${updatedMarketVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            } else {
+                usdValueField.innerText = `$${newBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+            }
         }
 
-        // Real-time dynamic date formatting
-        const now = new Date();
-        const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
-        
-        const generatedTxNum = "#" + Math.floor(100000 + Math.random() * 900000);
+        // 2. Generate and output standard high-fidelity statement details variables
+        const currentTimestamp = new Date();
+        const formattedDateStamp = `${currentTimestamp.getFullYear()}-${String(currentTimestamp.getMonth() + 1).padStart(2, '0')}-${String(currentTimestamp.getDate()).padStart(2, '0')} ${String(currentTimestamp.getHours()).padStart(2, '0')}:${String(currentTimestamp.getMinutes()).padStart(2, '0')}:${String(currentTimestamp.getSeconds()).padStart(2, '0')}`;
+        const generatedTransactionNumber = "#" + Math.floor(100000 + Math.random() * 900000);
 
-        // Inject data structure cleanly into Monochrome Slip view
-        document.getElementById('invPhoneHeader').innerText = phoneInput;
-        document.getElementById('invPhoneBody').innerText = phoneInput;
-        document.getElementById('invId').innerText = generatedTxNum;
-        document.getElementById('invDate').innerText = formattedDate;
-        document.getElementById('invOperator').innerText = operatorName;
-        document.getElementById('invUsd').innerText = `$${usdValue.toFixed(2)}`;
-        document.getElementById('invNgn').innerText = `${totalNgn}NGN`;
+        // Push values into monochrome preview window structure
+        document.getElementById('invPhoneHeader').innerText = phone;
+        document.getElementById('invPhoneBody').innerText = phone;
+        document.getElementById('invId').innerText = generatedTransactionNumber;
+        document.getElementById('invDate').innerText = formattedDateStamp;
+        document.getElementById('invOperator').innerText = operator;
+        document.getElementById('invUsd').innerText = `$${usdVal.toFixed(2)}`;
+        document.getElementById('invNgn').innerText = `${localizedNairaTotal}NGN`;
 
-        // Smooth Display trigger
+        // Reveal the structured view
         document.getElementById('invoiceSlip').style.display = 'block';
 
-        // Generate matching crypto blockchain transaction block strings
-        const hexChars = '0123456789abcdef';
-        let txHash = '0x';
-        for(let i=0; i<6; i++) txHash += hexChars[Math.floor(Math.random()*16)];
-        txHash += '...';
-        for(let i=0; i<4; i++) txHash += hexChars[Math.floor(Math.random()*16)];
+        // 3. Append detailed block tracking sequence numbers to dynamic tabular entries array
+        const hexadecimalMatrix = '0123456789abcdef';
+        let dynamicTxHash = '0x';
+        for(let i=0; i<6; i++) dynamicTxHash += hexadecimalMatrix[Math.floor(Math.random()*16)];
+        dynamicTxHash += '...';
+        for(let i=0; i<4; i++) dynamicTxHash += hexadecimalMatrix[Math.floor(Math.random()*16)];
 
-        // Append to running tabular ledger row
-        const ledger = document.getElementById('ledgerBody');
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><b>${crypto}</b></td>
-            <td>${phoneInput}</td>
-            <td>$${usdValue.toFixed(2)}</td>
-            <td class="hash-text">${txHash}</td>
+        const ledgerElement = document.getElementById('ledgerBody');
+        const standardRow = document.createElement('tr');
+        
+        // Render precise fractional notations dynamically per targeted cryptocurrency profile
+        const standardDisplayAmount = (asset === 'EFC' || asset === 'USDT') ? tokensToDeduct.toFixed(2) : tokensToDeduct.toFixed(6);
+
+        standardRow.innerHTML = `
+            <td><span class="token-badge">${asset}</span></td>
+            <td>${standardDisplayAmount} ${asset}</td>
+            <td>${phone}</td>
+            <td style="color:var(--text-success); font-weight:bold;">${localizedNairaTotal} NGN</td>
+            <td class="hash-text">${dynamicTxHash}</td>
             <td><span class="status-pill success">Settled</span></td>
         `;
-        ledger.insertBefore(row, ledger.firstChild);
+        ledgerElement.insertBefore(standardRow, ledgerElement.firstChild);
     }
 </script>
 
 </body>
-                                                                                </html>
-                                                                                
+</html>
